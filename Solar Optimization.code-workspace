@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../../Desktop/Solar Optimization"
+		},
+		{
+			"name": "Solar Optimization",
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Solar Optimization"
+	}
+}

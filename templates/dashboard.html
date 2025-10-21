@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Energcy Optimization Monitoring</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1e3c72;
+            --secondary: #2a5298;
+            --success: #198754;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #0dcaf0;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        .sensor-card {
+            border-left: 4px solid;
+            height: 100%;
+        }
+        
+        .sensor-card.temperature {
+            border-left-color: var(--danger);
+        }
+        
+        .sensor-card.humidity {
+            border-left-color: var(--info);
+        }
+        
+        .sensor-card.voltage {
+            border-left-color: var(--warning);
+        }
+        
+        .sensor-card.current {
+            border-left-color: #fd7e14;
+        }
+        
+        .sensor-card.power {
+            border-left-color: var(--success);
+        }
+        
+        .alert-card {
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .progress-thin {
+            height: 6px;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .time-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .footer-custom {
+            background-color: var(--dark);
+            color: white;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .data-table {
+            font-size: 0.85rem;
+        }
+        
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+        }
+        
+        .location-card {
+            border-left: 4px solid;
+        }
+        
+        .location-1 {
+            border-left-color: #1e3c72;
+        }
+        
+        .location-2 {
+            border-left-color: #198754;
+        }
+        
+        .location-3 {
+            border-left-color: #fd7e14;
+        }
+        
+        .device-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-online {
+            background-color: var(--success);
+        }
+        
+        .status-offline {
+            background-color: var(--danger);
+        }
+        
+        .location-selector {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .location-selector.active {
+            background-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="bi bi-sun-fill me-2" style="font-size: 1.5rem;"></i>
+                <span class="fw-bold">Solar Energy Optimization Monitoring </span>
+            </a>
+            <div class="d-flex align-items-center">
+                <span id="current-time" class="text-white me-3"></span>
+                <span class="badge bg-success d-flex align-items-center">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                    System Online
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Device Location Selector -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white border-0">
+                <h4 class="card-title mb-0 d-flex align-items-center">
+                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                    Device Locations
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="location-selector p-3 rounded active" data-location="1">
+                            <h5>LSPU Campus</h5>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="device-status status-online"></span>
+                                <span class="text-success">Online</span>
+                            </div>
+                            <small class="text-muted">Device ID: SOL-001</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="location-selector p-3 rounded" data-location="2">
+                            <h5>Sto Tomas House</h5>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="device-status status-online"></span>
+                                <span class="text-success">Online</span>
+                            </div>
+                            <small class="text-muted">Device ID: SOL-002</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="location-selector p-3 rounded" data-location="3">
+                            <h5>Tanauan Area</h5>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="device-status status-online"></span>
+                                <span class="text-success">Online</span>
+                            </div>
+                            <small class="text-muted">Device ID: SOL-003</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom h-100 location-1">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-muted mb-0">System Status</h5>
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Last Updated</span>
+                                <span id="last-updated" class="fw-bold">Just now</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Uptime</span>
+                                <span class="fw-bold">99.8%</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Data Points</span>
+                                <span id="data-points" class="fw-bold">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom h-100 location-1">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-muted mb-0">Efficiency</h5>
+                            <i class="bi bi-lightning-charge-fill text-warning" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div class="text-center">
+                            <div id="efficiency-value" class="metric-value text-dark">--</div>
+                            <div class="text-muted mt-1">Predicted Efficiency</div>
+                            <div id="efficiency-status" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom h-100 location-1">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-muted mb-0">Power Output</h5>
+                            <i class="bi bi-graph-up-arrow text-primary" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div class="text-center">
+                            <div id="power-value" class="metric-value text-dark">--</div>
+                            <div class="text-muted mt-1">Predicted Output</div>
+                            <div id="power-status" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card card-custom h-100 location-1">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-muted mb-0">Environment</h5>
+                            <i class="bi bi-cloud-sun-fill text-info" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div class="d-flex justify-content-between text-center">
+                            <div>
+                                <div id="temperature-value" class="fw-bold fs-5">--</div>
+                                <div class="text-muted small">Temperature</div>
+                            </div>
+                            <div>
+                                <div id="humidity-value" class="fw-bold fs-5">--</div>
+                                <div class="text-muted small">Humidity</div>
+                            </div>
+                            <div>
+                                <div id="irradiance-value" class="fw-bold fs-5">--</div>
+                                <div class="text-muted small">Irradiance</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8 mb-4">
+                <!-- Sensor Cards -->
+                <div class="card card-custom mb-4">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0 d-flex align-items-center">
+                            <i class="bi bi-cpu-fill text-primary me-2"></i>
+                            Real-time Sensor Data - <span id="current-location">LSPU Campus</span>
+                        </h4>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="locationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Switch Location
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="locationDropdown">
+                                <li><a class="dropdown-item location-option" href="#" data-location="1">LSPU Campus</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="2">Sto Tomas</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="3">Tanauan</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="sensor-cards" class="row g-3">
+                            <!-- Sensor cards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historical Data Chart -->
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0 d-flex align-items-center">
+                            <i class="bi bi-graph-up text-success me-2"></i>
+                            Historical Data - <span id="chart-location">LSPU Campus</span>
+                        </h4>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button id="day-btn" type="button" class="btn btn-outline-primary time-btn active">24H</button>
+                            <button id="week-btn" type="button" class="btn btn-outline-primary time-btn">Week</button>
+                            <button id="month-btn" type="button" class="btn btn-outline-primary time-btn">Month</button>
+                            <button id="year-btn" type="button" class="btn btn-outline-primary time-btn">Year</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="sensorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4 mb-4">
+                <!-- Alerts Panel -->
+                <div class="card card-custom mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h4 class="card-title mb-0 d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                            System Alerts
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="alerts">
+                            <!-- Alerts will be inserted here -->
+                        </div>
+                        <div id="no-alerts" class="text-center py-3 text-muted">
+                            <i class="bi bi-check-circle-fill text-success mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">No active alerts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FNN Predictions -->
+                <div class="card card-custom mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h4 class="card-title mb-0 d-flex align-items-center">
+                            <i class="bi bi-cpu text-purple me-2"></i>
+                            AI Predictions
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="fnn-predictions">
+                            <div class="mb-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-medium text-muted">Efficiency</span>
+                                    <span id="fnn-efficiency" class="fw-bold fs-5 text-purple">--</span>
+                                </div>
+                                <div class="progress progress-thin">
+                                    <div id="efficiency-bar" class="progress-bar bg-purple" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-medium text-muted">Power Output</span>
+                                    <span id="fnn-power" class="fw-bold fs-5 text-primary">-- W</span>
+                                </div>
+                                <div class="progress progress-thin">
+                                    <div id="power-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Controls -->
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0">
+                        <h4 class="card-title mb-0 d-flex align-items-center">
+                            <i class="bi bi-sliders text-muted me-2"></i>
+                            Data Controls
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="history-form">
+                            <div class="mb-3">
+                                <label for="start-date" class="form-label">Start Date</label>
+                                <input type="datetime-local" class="form-control" id="start-date">
+                            </div>
+                            <div class="mb-3">
+                                <label for="end-date" class="form-label">End Date</label>
+                                <input type="datetime-local" class="form-control" id="end-date">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
+                                <i class="bi bi-download me-2"></i>
+                                Fetch Data
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-Location Comparison -->
+        <div class="card card-custom mt-4">
+            <div class="card-header bg-white border-0">
+                <h4 class="card-title mb-0 d-flex align-items-center">
+                    <i class="bi bi-bar-chart-line text-info me-2"></i>
+                    Multi-Location Comparison
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Data Table -->
+        <div class="card card-custom mt-4">
+            <div class="card-header bg-white border-0">
+                <h4 class="card-title mb-0 d-flex align-items-center">
+                    <i class="bi bi-table text-info me-2"></i>
+                    Historical Data Table - <span id="table-location">LSPU Campus</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-striped table-hover data-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Temperature (°C)</th>
+                                <th>Humidity (%)</th>
+                                <th>Solar Voltage (V)</th>
+                                <th>Solar Current (A)</th>
+                                <th>Solar Irradiance (Lux)</th>
+                                <th>Battery Voltage (V)</th>
+                                <th>Battery Current (A)</th>
+                                <th>Power Output (W)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historical-table-body">
+                            <!-- Table rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-custom py-4 mt-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-sun-fill text-warning me-2" style="font-size: 1.5rem;"></i>
+                        <span class="fs-5 fw-bold">Solar Energcy Optimization Monitoring</span>
+                    </div>
+                    <p class="text-light mb-0 mt-1">Advanced AI-powered solar energy analytics across multiple locations</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-light mb-0">© 2025 Solar Analytics. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // DOM Elements
+        const sensorCards = document.getElementById('sensor-cards');
+        const alertsDiv = document.getElementById('alerts');
+        const noAlertsDiv = document.getElementById('no-alerts');
+        const fnnEfficiency = document.getElementById('fnn-efficiency');
+        const fnnPower = document.getElementById('fnn-power');
+        const efficiencyBar = document.getElementById('efficiency-bar');
+        const powerBar = document.getElementById('power-bar');
+        const efficiencyValue = document.getElementById('efficiency-value');
+        const efficiencyStatus = document.getElementById('efficiency-status');
+        const powerValue = document.getElementById('power-value');
+        const powerStatus = document.getElementById('power-status');
+        const temperatureValue = document.getElementById('temperature-value');
+        const humidityValue = document.getElementById('humidity-value');
+        const irradianceValue = document.getElementById('irradiance-value');
+        const lastUpdated = document.getElementById('last-updated');
+        const dataPoints = document.getElementById('data-points');
+        const currentTime = document.getElementById('current-time');
+        const historicalTableBody = document.getElementById('historical-table-body');
+        const currentLocationSpan = document.getElementById('current-location');
+        const chartLocationSpan = document.getElementById('chart-location');
+        const tableLocationSpan = document.getElementById('table-location');
+        
+        let chart;
+        let comparisonChart;
+        let updateInterval;
+        let currentTimeRange = 'day';
+        let currentLocation = 1; // Default to LSPU Campus
+        const locationNames = {
+            1: 'LSPU Campus',
+            2: 'Sto Tomas', 
+            3: 'Tanauan'
+        };
+
+        // Initialize the dashboard
+        function initDashboard() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Set default date range (last 24 hours)
+            const end = new Date();
+            const start = new Date();
+            start.setHours(start.getHours() - 24);
+            
+            document.getElementById('start-date').value = formatDateForInput(start);
+            document.getElementById('end-date').value = formatDateForInput(end);
+            
+            // Set up location selectors
+            setupLocationSelectors();
+            
+            // Initial data fetch
+            updateDashboard();
+            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+            updateComparisonChart();
+            
+            // Set up auto-refresh
+            updateInterval = setInterval(updateDashboard, 10000);
+            
+            // Set up time range buttons
+            document.getElementById('day-btn').addEventListener('click', () => setTimeRange('day'));
+            document.getElementById('week-btn').addEventListener('click', () => setTimeRange('week'));
+            document.getElementById('month-btn').addEventListener('click', () => setTimeRange('month'));
+            document.getElementById('year-btn').addEventListener('click', () => setTimeRange('year'));
+        }
+
+        // Set up location selection functionality
+        function setupLocationSelectors() {
+            // Location selector cards
+            document.querySelectorAll('.location-selector').forEach(selector => {
+                selector.addEventListener('click', function() {
+                    const locationId = this.getAttribute('data-location');
+                    switchLocation(locationId);
+                });
+            });
+            
+            // Dropdown location options
+            document.querySelectorAll('.location-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const locationId = this.getAttribute('data-location');
+                    switchLocation(locationId);
+                });
+            });
+        }
+
+        // Switch between locations
+        function switchLocation(locationId) {
+            currentLocation = parseInt(locationId);
+            
+            // Update active location selectors
+            document.querySelectorAll('.location-selector').forEach(selector => {
+                if (selector.getAttribute('data-location') === locationId) {
+                    selector.classList.add('active');
+                } else {
+                    selector.classList.remove('active');
+                }
+            });
+            
+            // Update location text
+            currentLocationSpan.textContent = locationNames[currentLocation];
+            chartLocationSpan.textContent = locationNames[currentLocation];
+            tableLocationSpan.textContent = locationNames[currentLocation];
+            
+            // Update card borders
+            document.querySelectorAll('.location-1, .location-2, .location-3').forEach(card => {
+                card.classList.remove('location-1', 'location-2', 'location-3');
+                card.classList.add(`location-${locationId}`);
+            });
+            
+            // Refresh data for the new location
+            updateDashboard();
+            
+            // Update historical data with current time range
+            const end = new Date();
+            const start = new Date();
+            
+            switch(currentTimeRange) {
+                case 'day':
+                    start.setHours(start.getHours() - 24);
+                    break;
+                case 'week':
+                    start.setDate(start.getDate() - 7);
+                    break;
+                case 'month':
+                    start.setMonth(start.getMonth() - 1);
+                    break;
+                case 'year':
+                    start.setFullYear(start.getFullYear() - 1);
+                    break;
+            }
+            
+            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+        }
+
+        // Update current time display
+        function updateCurrentTime() {
+            const now = new Date();
+            currentTime.textContent = now.toLocaleString();
+        }
+
+        // Format date for datetime-local input
+        function formatDateForInput(date) {
+            return date.toISOString().slice(0, 16);
+        }
+
+        // Set time range for historical data
+        function setTimeRange(range) {
+            const end = new Date();
+            const start = new Date();
+            currentTimeRange = range;
+            
+            // Reset all buttons
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            switch(range) {
+                case 'day':
+                    start.setHours(start.getHours() - 24);
+                    document.getElementById('day-btn').classList.add('active');
+                    break;
+                case 'week':
+                    start.setDate(start.getDate() - 7);
+                    document.getElementById('week-btn').classList.add('active');
+                    break;
+                case 'month':
+                    start.setMonth(start.getMonth() - 1);
+                    document.getElementById('month-btn').classList.add('active');
+                    break;
+                case 'year':
+                    start.setFullYear(start.getFullYear() - 1);
+                    document.getElementById('year-btn').classList.add('active');
+                    break;
+            }
+            
+            document.getElementById('start-date').value = formatDateForInput(start);
+            document.getElementById('end-date').value = formatDateForInput(end);
+            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+        }
+
+        // Generate mock historical data for demonstration
+        function generateMockHistoricalData(start, end, locationId) {
+            const data = [];
+            const startTime = new Date(start).getTime();
+            const endTime = new Date(end).getTime();
+            const interval = (endTime - startTime) / 100; // Create 100 data points
+            
+            // Different base values for different locations to simulate different conditions
+            const locationFactors = {
+                1: { // LSPU Campus- urban, moderate climate
+                    tempBase: 28,
+                    humidityBase: 70,
+                    solarBase: 0.9
+                },
+                2: { // Sto Tomas- coastal, sunny
+                    tempBase: 30,
+                    humidityBase: 75,
+                    solarBase: 1.1
+                },
+                3: { // Tanauan - southern, hot
+                    tempBase: 32,
+                    humidityBase: 80,
+                    solarBase: 1.0
+                }
+            };
+            
+            const factors = locationFactors[locationId];
+            
+            for (let i = 0; i <= 100; i++) {
+                const timestamp = new Date(startTime + i * interval);
+                // Generate realistic solar data with some variation
+                const hour = timestamp.getHours();
+                const isDaytime = hour >= 6 && hour <= 18;
+                const dayOfWeek = timestamp.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                // Base values that vary by time of day and season
+                const tempBase = isDaytime ? factors.tempBase : factors.tempBase - 5;
+                const humidityBase = isDaytime ? factors.humidityBase : factors.humidityBase + 10;
+                const solarVoltageBase = isDaytime ? 24 * factors.solarBase : 0.5;
+                const solarCurrentBase = isDaytime ? 5 * factors.solarBase : 0.1;
+                const irradianceBase = isDaytime ? 800 * factors.solarBase : 10;
+                const batteryVoltageBase = isDaytime ? 12.5 : 11.8;
+                const batteryCurrentBase = isDaytime ? -2 : 1; // Negative during charging
+                const powerOutputBase = isDaytime ? 120 * factors.solarBase : 10;
+                
+                // Add some random variation
+                const randomFactor = 0.8 + Math.random() * 0.4;
+                
+                data.push({
+                    Timestamp: timestamp.toISOString(),
+                    'Temperature (°C)': (tempBase * randomFactor).toFixed(1),
+                    'Humidity (%)': (humidityBase * randomFactor).toFixed(1),
+                    'Solar Voltage (V)': (solarVoltageBase * randomFactor).toFixed(2),
+                    'Solar Current (A)': (solarCurrentBase * randomFactor).toFixed(2),
+                    'Solar Irradiance (Lux)': (irradianceBase * randomFactor).toFixed(0),
+                    'Battery Voltage (V)': (batteryVoltageBase * randomFactor).toFixed(2),
+                    'Battery Current (A)': (batteryCurrentBase * randomFactor).toFixed(2),
+                    'Power Output (W)': (powerOutputBase * randomFactor).toFixed(1),
+                    'Time of Day (hour,0–23)': hour,
+                    'Day Type (0=Cloudy,1=Sunny)': isWeekend ? 1 : 0
+                });
+            }
+            
+            return data;
+        }
+
+        // UPDATE DASHBOARD
+        async function updateDashboard() {
+            try {
+                // For demo purposes, we'll use mock data
+                // In a real application, you would fetch from your API with location parameter
+                const mockData = generateMockHistoricalData(
+                    new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), 
+                    new Date().toISOString(),
+                    currentLocation
+                );
+                
+                const latest = mockData[mockData.length - 1];
+                if (!latest) return;
+
+                // Update last updated time
+                lastUpdated.textContent = 'Just now';
+                dataPoints.textContent = mockData.length;
+
+                // SENSOR CARDS
+                sensorCards.innerHTML = '';
+                const sensors = [
+                    {name:'Temperature', value:latest['Temperature (°C)'], unit:'°C', icon:'bi-thermometer-half', color:'temperature', class:'danger'},
+                    {name:'Humidity', value:latest['Humidity (%)'], unit:'%', icon:'bi-droplet-half', color:'humidity', class:'info'},
+                    {name:'Solar Voltage', value:latest['Solar Voltage (V)'], unit:'V', icon:'bi-lightning', color:'voltage', class:'warning'},
+                    {name:'Solar Current', value:latest['Solar Current (A)'], unit:'A', icon:'bi-lightning-charge', color:'current', class:'warning'},
+                    {name:'Solar Irradiance', value:latest['Solar Irradiance (Lux)'], unit:'Lux', icon:'bi-brightness-high', color:'voltage', class:'warning'},
+                    {name:'Power Output', value:latest['Power Output (W)'], unit:'W', icon:'bi-graph-up', color:'power', class:'success'}
+                ];
+                
+                sensors.forEach(s => {
+                    const col = document.createElement('div');
+                    col.className = 'col-sm-6 col-md-4';
+                    col.innerHTML = `
+                        <div class="card sensor-card ${s.color} h-100">
+                            <div class="card-body text-center p-3">
+                                <div class="text-${s.class} mb-2">
+                                    <i class="bi ${s.icon}" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <h6 class="card-title text-muted">${s.name}</h6>
+                                <p class="card-text metric-value text-dark">${s.value} ${s.unit}</p>
+                            </div>
+                        </div>
+                    `;
+                    sensorCards.appendChild(col);
+                });
+
+                // Update environmental values
+                temperatureValue.textContent = latest['Temperature (°C)'] + '°C';
+                humidityValue.textContent = latest['Humidity (%)'] + '%';
+                irradianceValue.textContent = latest['Solar Irradiance (Lux)'] + ' Lux';
+
+                // FNN PREDICTIONS (mock for demo)
+                const fnn = {
+                    efficiency: 0.85 + Math.random() * 0.1,
+                    power: 100 + Math.random() * 50
+                };
+
+                // Update prediction displays
+                fnnEfficiency.textContent = fnn.efficiency ? fnn.efficiency.toFixed(3) : '--';
+                fnnPower.textContent = fnn.power ? fnn.power.toFixed(2) + ' W' : '-- W';
+                
+                efficiencyValue.textContent = fnn.efficiency ? fnn.efficiency.toFixed(3) : '--';
+                powerValue.textContent = fnn.power ? fnn.power.toFixed(2) + ' W' : '-- W';
+                
+                // Update efficiency bar (assuming efficiency is between 0 and 1)
+                if (fnn.efficiency) {
+                    efficiencyBar.style.width = `${fnn.efficiency * 100}%`;
+                    
+                    if(fnn.efficiency < 0.85) {
+                        efficiencyStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
+                    } else {
+                        efficiencyStatus.innerHTML = '<span class="badge bg-success status-badge">Normal</span>';
+                    }
+                }
+                
+                // Update power bar (assuming max power is 200W for visualization)
+                if (fnn.power) {
+                    const powerPercent = Math.min((fnn.power / 200) * 100, 100);
+                    powerBar.style.width = `${powerPercent}%`;
+                    
+                    if(fnn.power < 50) {
+                        powerStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
+                    } else {
+                        powerStatus.innerHTML = '<span class="badge bg-success status-badge">Normal</span>';
+                    }
+                }
+
+                // ALERTS
+                alertsDiv.innerHTML = '';
+                let hasAlerts = false;
+                
+                if(fnn.efficiency && fnn.efficiency < 0.85) {
+                    alertsDiv.innerHTML += `
+                        <div class="alert alert-danger alert-card d-flex align-items-start pulse">
+                            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">Low Efficiency</h6>
+                                <p class="mb-0 small">Current efficiency is ${fnn.efficiency.toFixed(3)}. Consider maintenance.</p>
+                            </div>
+                        </div>`;
+                    hasAlerts = true;
+                }
+                
+                if(fnn.power && fnn.power < 50) {
+                    alertsDiv.innerHTML += `
+                        <div class="alert alert-danger alert-card d-flex align-items-start pulse">
+                            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">Low Power Output</h6>
+                                <p class="mb-0 small">Current output is ${fnn.power.toFixed(2)}W. Check system components.</p>
+                            </div>
+                        </div>`;
+                    hasAlerts = true;
+                }
+                
+                // Show/hide no alerts message
+                noAlertsDiv.style.display = hasAlerts ? 'none' : 'block';
+                
+            } catch(err) {
+                console.error('Dashboard update error:', err);
+                // Show error alert
+                alertsDiv.innerHTML = `
+                    <div class="alert alert-warning alert-card d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">Connection Issue</h6>
+                            <p class="mb-0 small">Unable to fetch latest data. Check your connection.</p>
+                        </div>
+                    </div>`;
+                noAlertsDiv.style.display = 'none';
+            }
+        }
+
+        // HISTORICAL DATA CHART
+        async function fetchHistoricalData(start, end) {
+            try {
+                // For demo purposes, we'll use mock data
+                // In a real application, you would fetch from your API: /sensor-data?start=${start}&end=${end}&location=${currentLocation}
+                const data = generateMockHistoricalData(start, end, currentLocation);
+
+                // Update historical data table
+                updateHistoricalTable(data);
+
+                // Prepare data for chart based on time range
+                let labels, tempData, humData, powerData;
+                
+                if (currentTimeRange === 'day') {
+                    // For day view, show data by hour
+                    labels = data.map(d => {
+                        const date = new Date(d.Timestamp);
+                        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    });
+                } else if (currentTimeRange === 'week') {
+                    // For week view, show data by day
+                    const aggregated = aggregateDataByDay(data);
+                    labels = aggregated.map(d => {
+                        const date = new Date(d.Timestamp);
+                        return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+                    });
+                    tempData = aggregated.map(d => d['Temperature (°C)']);
+                    humData = aggregated.map(d => d['Humidity (%)']);
+                    powerData = aggregated.map(d => d['Power Output (W)']);
+                } else if (currentTimeRange === 'month') {
+                    // For month view, show data by week
+                    const aggregated = aggregateDataByWeek(data);
+                    labels = aggregated.map(d => d.weekLabel);
+                    tempData = aggregated.map(d => d.avgTemp);
+                    humData = aggregated.map(d => d.avgHumidity);
+                    powerData = aggregated.map(d => d.avgPower);
+                } else {
+                    // For year view, show data by month
+                    const aggregated = aggregateDataByMonth(data);
+                    labels = aggregated.map(d => d.monthLabel);
+                    tempData = aggregated.map(d => d.avgTemp);
+                    humData = aggregated.map(d => d.avgHumidity);
+                    powerData = aggregated.map(d => d.avgPower);
+                }
+
+                // If we haven't set the data yet (for day view), use the original data
+                if (!tempData) {
+                    tempData = data.map(d => d['Temperature (°C)']);
+                    humData = data.map(d => d['Humidity (%)']);
+                    powerData = data.map(d => d['Power Output (W)']);
+                }
+
+                if(chart) chart.destroy();
+                const ctx = document.getElementById('sensorChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Temperature (°C)',
+                                data: tempData,
+                                borderColor: 'rgb(220, 53, 69)',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Humidity (%)',
+                                data: humData,
+                                borderColor: 'rgb(13, 202, 240)',
+                                backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'Power Output (W)',
+                                data: powerData,
+                                borderColor: 'rgb(25, 135, 84)',
+                                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Temperature (°C) / Power (W)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Humidity (%)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            }
+                        }
+                    }
+                });
+            } catch(err) {
+                console.error('Historical data fetch error:', err);
+            }
+        }
+
+        // Update comparison chart with data from all locations
+        function updateComparisonChart() {
+            // Generate mock data for all three locations
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 7); // Last week
+            
+            const location1Data = generateMockHistoricalData(start, end, 1);
+            const location2Data = generateMockHistoricalData(start, end, 2);
+            const location3Data = generateMockHistoricalData(start, end, 3);
+            
+            // Aggregate data by day for comparison
+            const location1Aggregated = aggregateDataByDay(location1Data);
+            const location2Aggregated = aggregateDataByDay(location2Data);
+            const location3Aggregated = aggregateDataByDay(location3Data);
+            
+            const labels = location1Aggregated.map(d => {
+                const date = new Date(d.Timestamp);
+                return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+            });
+            
+            const location1Power = location1Aggregated.map(d => d['Power Output (W)']);
+            const location2Power = location2Aggregated.map(d => d['Power Output (W)']);
+            const location3Power = location3Aggregated.map(d => d['Power Output (W)']);
+            
+            if(comparisonChart) comparisonChart.destroy();
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'LSPU Campus',
+                            data: location1Power,
+                            backgroundColor: 'rgba(30, 60, 114, 0.7)',
+                            borderColor: 'rgb(30, 60, 114)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Sto Tomas',
+                            data: location2Power,
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgb(25, 135, 84)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Tanauan',
+                            data: location3Power,
+                            backgroundColor: 'rgba(253, 126, 20, 0.7)',
+                            borderColor: 'rgb(253, 126, 20)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Power Output Comparison (Last 7 Days)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Power Output (W)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Aggregate data by day for week view
+        function aggregateDataByDay(data) {
+            const aggregated = {};
+            
+            data.forEach(record => {
+                const date = new Date(record.Timestamp);
+                const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                
+                if (!aggregated[dateKey]) {
+                    aggregated[dateKey] = {
+                        Timestamp: record.Timestamp,
+                        'Temperature (°C)': 0,
+                        'Humidity (%)': 0,
+                        'Power Output (W)': 0,
+                        count: 0
+                    };
+                }
+                
+                aggregated[dateKey]['Temperature (°C)'] += parseFloat(record['Temperature (°C)']);
+                aggregated[dateKey]['Humidity (%)'] += parseFloat(record['Humidity (%)']);
+                aggregated[dateKey]['Power Output (W)'] += parseFloat(record['Power Output (W)']);
+                aggregated[dateKey].count++;
+            });
+            
+            // Calculate averages
+            Object.keys(aggregated).forEach(key => {
+                aggregated[key]['Temperature (°C)'] = (aggregated[key]['Temperature (°C)'] / aggregated[key].count).toFixed(1);
+                aggregated[key]['Humidity (%)'] = (aggregated[key]['Humidity (%)'] / aggregated[key].count).toFixed(1);
+                aggregated[key]['Power Output (W)'] = (aggregated[key]['Power Output (W)'] / aggregated[key].count).toFixed(1);
+            });
+            
+            return Object.values(aggregated);
+        }
+
+        // Aggregate data by week for month view
+        function aggregateDataByWeek(data) {
+            const aggregated = {};
+            
+            data.forEach(record => {
+                const date = new Date(record.Timestamp);
+                const year = date.getFullYear();
+                const weekNumber = getWeekNumber(date);
+                const weekKey = `${year}-W${weekNumber}`;
+                
+                if (!aggregated[weekKey]) {
+                    aggregated[weekKey] = {
+                        weekLabel: `Week ${weekNumber}`,
+                        avgTemp: 0,
+                        avgHumidity: 0,
+                        avgPower: 0,
+                        count: 0
+                    };
+                }
+                
+                aggregated[weekKey].avgTemp += parseFloat(record['Temperature (°C)']);
+                aggregated[weekKey].avgHumidity += parseFloat(record['Humidity (%)']);
+                aggregated[weekKey].avgPower += parseFloat(record['Power Output (W)']);
+                aggregated[weekKey].count++;
+            });
+            
+            // Calculate averages
+            Object.keys(aggregated).forEach(key => {
+                aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
+                aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
+                aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+            });
+            
+            return Object.values(aggregated);
+        }
+
+        // Aggregate data by month for year view
+        function aggregateDataByMonth(data) {
+            const aggregated = {};
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            data.forEach(record => {
+                const date = new Date(record.Timestamp);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const monthKey = `${year}-${month}`;
+                
+                if (!aggregated[monthKey]) {
+                    aggregated[monthKey] = {
+                        monthLabel: `${monthNames[month]} ${year}`,
+                        avgTemp: 0,
+                        avgHumidity: 0,
+                        avgPower: 0,
+                        count: 0
+                    };
+                }
+                
+                aggregated[monthKey].avgTemp += parseFloat(record['Temperature (°C)']);
+                aggregated[monthKey].avgHumidity += parseFloat(record['Humidity (%)']);
+                aggregated[monthKey].avgPower += parseFloat(record['Power Output (W)']);
+                aggregated[monthKey].count++;
+            });
+            
+            // Calculate averages
+            Object.keys(aggregated).forEach(key => {
+                aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
+                aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
+                aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+            });
+            
+            return Object.values(aggregated);
+        }
+
+        // Helper function to get week number
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        // Update historical data table
+        function updateHistoricalTable(data) {
+            historicalTableBody.innerHTML = '';
+            
+            // Show only a subset of data in the table to avoid performance issues
+            const displayData = data.length > 100 ? data.slice(-100) : data;
+            
+            displayData.forEach(record => {
+                const row = document.createElement('tr');
+                const date = new Date(record.Timestamp);
+                
+                row.innerHTML = `
+                    <td>${date.toLocaleString()}</td>
+                    <td>${record['Temperature (°C)']}</td>
+                    <td>${record['Humidity (%)']}</td>
+                    <td>${record['Solar Voltage (V)']}</td>
+                    <td>${record['Solar Current (A)']}</td>
+                    <td>${record['Solar Irradiance (Lux)']}</td>
+                    <td>${record['Battery Voltage (V)']}</td>
+                    <td>${record['Battery Current (A)']}</td>
+                    <td>${record['Power Output (W)']}</td>
+                `;
+                
+                historicalTableBody.appendChild(row);
+            });
+        }
+
+        // DATE PICKER FORM
+        document.getElementById('history-form').addEventListener('submit', e => {
+            e.preventDefault();
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            // Determine the time range based on the selected dates
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 1) {
+                currentTimeRange = 'day';
+            } else if (diffDays <= 7) {
+                currentTimeRange = 'week';
+            } else if (diffDays <= 31) {
+                currentTimeRange = 'month';
+            } else {
+                currentTimeRange = 'year';
+            }
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            fetchHistoricalData(start, end);
+        });
+
+        // INITIALIZE DASHBOARD
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
