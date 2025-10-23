@@ -1,0 +1,25 @@
+Date: 2025-10-23 19:53:59.401831
+=== Classification ===
+Accuracy: 0.9934
+Precision: 0.9924
+Recall: 0.9954
+F1: 0.9939
+AUC: 0.9995
+Confusion Matrix:
+[[1093   10]
+ [   6 1311]]
+              precision    recall  f1-score   support
+
+           0     0.9945    0.9909    0.9927      1103
+           1     0.9924    0.9954    0.9939      1317
+
+    accuracy                         0.9934      2420
+   macro avg     0.9935    0.9932    0.9933      2420
+weighted avg     0.9934    0.9934    0.9934      2420
+
+
+=== Regression (Power Output) ===
+RMSE: 0.0522
+MAE: 0.0386
+R2: 0.9989
+MAPE: 0.48%
