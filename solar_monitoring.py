@@ -3,56 +3,100 @@ import sqlite3
 import pandas as pd
 import numpy as np
 import requests
-import tensorflow as tf
 from datetime import datetime, timedelta
 import json
 from typing import Dict, List, Tuple, Union, Any
 import time
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
 
 # ------------------------
 # CONFIGURATION
 # ------------------------
-# API Keys (set these in environment variables)
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
-NREL_API_KEY = os.getenv("NREL_API_KEY", "")  # Get from https://developer.nrel.gov/signup/
+def get_api_keys():
+    """Get API keys from config file"""
+    try:
+        with open("config.json", "r") as f:
+            config = json.load(f)
+            openweather_key = config.get("OPENWEATHER_API_KEY")
+            nrel_key = config.get("NREL_API_KEY")
+            
+        if not openweather_key or not nrel_key:
+            raise ValueError("API keys not found in config file")
+            
+        print("✅ API keys loaded successfully from config.json")
+        return openweather_key, nrel_key
+        
+    except Exception as e:
+        print(f"❌ Error loading config file: {e}")
+        print("Please ensure config.json exists with valid API keys")
+        return None, None
 
-# PV System Configuration for PVWatts API
+OPENWEATHER_API_KEY, NREL_API_KEY = get_api_keys()
+
+if not OPENWEATHER_API_KEY or not NREL_API_KEY:
+    print("❌ Cannot start without valid API keys")
+    exit(1)
+
+# Real 100W Solar Panel Specifications (Monocrystalline)
+REAL_SOLAR_SPECS = {
+    "max_power": 100.0,  # Watts
+    "voltage_max_power": 18.5,  # Vmp
+    "current_max_power": 5.41,  # Imp
+    "open_circuit_voltage": 22.3,  # Voc
+    "short_circuit_current": 5.86,  # Isc
+    "temp_coefficient_voc": -0.0032,  # %/°C
+    "temp_coefficient_isc": 0.0005,   # %/°C
+    "nominal_temp": 25.0,  # STC temperature
+    "efficiency": 0.195,   # 19.5% efficiency
+    "panel_area": 0.54     # m²
+}
+
+# Real Battery Specifications (12V 20Ah LiPo)
+REAL_BATTERY_SPECS = {
+    "nominal_voltage": 12.0,  # V
+    "capacity": 20.0,         # Ah
+    "max_charge_voltage": 12.6,  # V - LiPo is typically 4.2V per cell (3S = 12.6V)
+    "float_voltage": 12.4,    # V - LiPo doesn't really have float charging
+    "cutoff_voltage": 10.5,   # V - Minimum discharge voltage (3.5V per cell)
+    "charge_efficiency": 0.95,  # 95% - LiPo is more efficient
+    "depth_of_discharge": 0.8,  # 80% - LiPo can handle deeper discharge
+    "cell_count": 3,          # 3S configuration
+    "max_charge_current": 10.0,  # A - 0.5C for 20Ah battery
+    "max_discharge_current": 20.0,  # A - 1C for 20Ah battery
+}
+
+# System Configuration
 PV_SYSTEM_CONFIG = {
     "system_capacity": 0.1,  # 100W system size (0.1 kW)
-    "module_type": 1,        # 0=Standard, 1=Premium, 2=Thin film
-    "array_type": 1,         # 0=Fixed open rack, 1=Fixed roof mount, 2=1-axis tracking
-    "tilt": 14,             # Tilt angle for Philippines (near latitude)
+    "module_type": 1,        # Premium monocrystalline
+    "array_type": 1,         # Fixed roof mount
+    "tilt": 14,             # Tilt angle for Philippines
     "azimuth": 180,         # South-facing
-    "losses": 14.08         # Default losses (soiling, shading, etc)
+    "losses": 14.08         # System losses
 }
 
 LOCATIONS = {
     "Sto_Tomas": {
         "lat": 14.1119, 
         "lon": 121.1483,
-        "altitude": 300  # meters above sea level
+        "altitude": 300,
+        "battery_soc": 80.0,  # Initial SOC for each location
+        "climate_factor": 1.0  # Climate adjustment factor
     },
     "LSPU_San_Pablo": {
         "lat": 14.0689, 
         "lon": 121.3256,
-        "altitude": 450
+        "altitude": 450,
+        "battery_soc": 75.0,
+        "climate_factor": 0.95  # Slightly less sunny
     },
     "San_Pablo_City": {
         "lat": 14.0777, 
         "lon": 121.3257,
-        "altitude": 430
+        "altitude": 430,
+        "battery_soc": 85.0,
+        "climate_factor": 1.05  # Slightly more sunny
     }
-}
-
-# Solar System Specifications
-SOLAR_SPECS = {
-    "max_voltage": 21.5,
-    "max_current": 5.5,
-    "temp_coefficient": -0.0040,  # Power reduction per °C above STC (25°C)
-    "nominal_temp": 25.0,
-    "max_power": 118.25  # Watts (Vmax * Imax)
 }
 
 # Alert Thresholds
@@ -66,12 +110,17 @@ ALERT_THRESHOLDS = {
         "warning": 75.0
     },
     "power": {
-        "low": SOLAR_SPECS["max_power"] * 0.3,
-        "medium": SOLAR_SPECS["max_power"] * 0.7
+        "low": REAL_SOLAR_SPECS["max_power"] * 0.3,
+        "medium": REAL_SOLAR_SPECS["max_power"] * 0.7
     },
     "battery": {
-        "critical": 11.2,  # V
-        "warning": 11.8
+        "critical": REAL_BATTERY_SPECS["cutoff_voltage"],
+        "warning": 11.8,
+        "full": REAL_BATTERY_SPECS["float_voltage"]
+    },
+    "solar_voltage": {
+        "low": REAL_SOLAR_SPECS["voltage_max_power"] * 0.6,
+        "high": REAL_SOLAR_SPECS["open_circuit_voltage"] * 1.1
     }
 }
 
@@ -82,6 +131,655 @@ class Alert:
     type: str
     severity: str
     message: str
+
+class HistoricalDataGenerator:
+    """Generates realistic historical solar data from October 1, 2025 with 5-minute intervals"""
+    
+    def __init__(self):
+        self.start_date = datetime(2025, 10, 1)
+        self.end_date = datetime.now()
+        self.last_rain_time = None
+        self.current_rain_duration = 0
+        
+    def generate_historical_weather_pattern(self, date: datetime, location_factor: float) -> Dict:
+        """Generate realistic weather patterns for Philippines"""
+        day_of_year = date.timetuple().tm_yday
+        hour = date.hour
+        minute = date.minute
+        
+        # Philippines climate: Wet season May-Oct, Dry season Nov-Apr
+        is_wet_season = 121 <= day_of_year <= 304  # May 1 to Oct 31
+        
+        # Base temperature for Philippines
+        base_temp = 28.0 + 4 * np.sin(2 * np.pi * (day_of_year - 80) / 365)
+        
+        # Diurnal temperature variation
+        time_of_day = hour + minute/60.0
+        diurnal_variation = 6 * np.sin(np.pi * (time_of_day - 6) / 12)
+        
+        temperature = base_temp + diurnal_variation + np.random.normal(0, 0.3)
+        
+        # Determine weather condition
+        weather_condition = self._determine_daily_weather(date, is_wet_season, location_factor)
+        
+        # Set values based on weather condition
+        if weather_condition == "sunny":
+            cloud_coverage = np.random.uniform(10, 30)
+            humidity = np.random.uniform(50, 65)
+            rainfall = 0.0
+            is_raining = False
+        elif weather_condition == "partly_cloudy":
+            cloud_coverage = np.random.uniform(30, 60)
+            humidity = np.random.uniform(60, 75)
+            rainfall = 0.0
+            is_raining = False
+        elif weather_condition == "cloudy":
+            cloud_coverage = np.random.uniform(60, 85)
+            humidity = np.random.uniform(70, 85)
+            rainfall = 0.0
+            is_raining = False
+        elif weather_condition == "light_rain":
+            cloud_coverage = np.random.uniform(70, 95)
+            humidity = np.random.uniform(80, 90)
+            rainfall = np.random.uniform(0.1, 2.0)
+            is_raining = True
+        elif weather_condition == "heavy_rain":
+            cloud_coverage = np.random.uniform(85, 100)
+            humidity = np.random.uniform(85, 95)
+            rainfall = np.random.uniform(2.0, 8.0)
+            is_raining = True
+        else:  # thunderstorm
+            cloud_coverage = np.random.uniform(90, 100)
+            humidity = np.random.uniform(90, 98)
+            rainfall = np.random.uniform(5.0, 15.0)
+            is_raining = True
+        
+        # Adjust for night time
+        if hour >= 18 or hour <= 6:
+            temperature -= 2
+            if is_raining:
+                humidity = min(98, humidity + 5)
+        
+        return {
+            "temperature": round(temperature, 1),
+            "humidity": round(humidity, 1),
+            "cloud_coverage": round(cloud_coverage, 1),
+            "is_raining": is_raining,
+            "rainfall_mm": round(rainfall, 1),
+            "weather_condition": weather_condition,
+            "is_wet_season": is_wet_season
+        }
+    
+    def _determine_daily_weather(self, date: datetime, is_wet_season: bool, location_factor: float) -> str:
+        """Determine daily weather pattern with realistic transitions"""
+        date_str = date.strftime("%Y-%m-%d")
+        
+        # Use date as seed for consistent daily weather
+        daily_seed = hash(date_str) % 10000
+        np.random.seed(daily_seed)
+        
+        if is_wet_season:
+            # Wet season probabilities
+            probabilities = {
+                "sunny": 0.2,
+                "partly_cloudy": 0.3,
+                "cloudy": 0.2,
+                "light_rain": 0.15,
+                "heavy_rain": 0.1,
+                "thunderstorm": 0.05
+            }
+        else:
+            # Dry season probabilities
+            probabilities = {
+                "sunny": 0.5,
+                "partly_cloudy": 0.3,
+                "cloudy": 0.15,
+                "light_rain": 0.04,
+                "heavy_rain": 0.01,
+                "thunderstorm": 0.0
+            }
+        
+        # Adjust for afternoon showers in wet season
+        hour = date.hour
+        if is_wet_season and 14 <= hour <= 17:
+            probabilities = {
+                "sunny": 0.1,
+                "partly_cloudy": 0.2,
+                "cloudy": 0.2,
+                "light_rain": 0.3,
+                "heavy_rain": 0.15,
+                "thunderstorm": 0.05
+            }
+        
+        # Select weather condition
+        rand_val = np.random.random()
+        cumulative = 0
+        for condition, prob in probabilities.items():
+            cumulative += prob
+            if rand_val <= cumulative:
+                return condition
+        
+        return "partly_cloudy"
+    
+    def calculate_historical_solar_irradiance(self, date: datetime, weather_data: Dict, location_factor: float) -> Dict:
+        """Calculate solar irradiance with realistic values - NEVER ZERO DURING DAYTIME"""
+        hour = date.hour
+        minute = date.minute
+        time_of_day = hour + minute/60.0
+        
+        # Night time - return minimal but not zero values for monitoring
+        if not (6 <= time_of_day <= 18):
+            return {
+                "irradiance": 0.0, 
+                "dni": 0.0, 
+                "dhi": 0.0, 
+                "ghi": 0.0
+            }
+        
+        # Time of day factor - peak at solar noon
+        time_factor = np.sin((time_of_day - 6) * np.pi / 12)
+        time_factor = max(0, time_factor)  # Ensure non-negative
+        
+        # Weather effects on irradiance
+        weather_factors = {
+            "sunny": 1.0,
+            "partly_cloudy": 0.7,
+            "cloudy": 0.4,
+            "light_rain": 0.15,
+            "heavy_rain": 0.05,
+            "thunderstorm": 0.02
+        }
+        
+        weather_factor = weather_factors.get(weather_data["weather_condition"], 0.5)
+        
+        # Cloud effect
+        cloud_factor = 1 - (weather_data["cloud_coverage"] / 100) * 0.6
+        
+        # Base irradiance (W/m²)
+        base_irradiance = 1000 * time_factor * weather_factor * cloud_factor * location_factor
+        
+        # Add realistic variation
+        noise = np.random.normal(1.0, 0.1)
+        total_irradiance = max(50, base_irradiance * noise)  # Minimum 50 W/m² during daytime
+        
+        # Calculate components
+        if weather_data["is_raining"]:
+            # More diffuse light during rain
+            dni = total_irradiance * 0.2
+            dhi = total_irradiance * 0.8
+        else:
+            dni = total_irradiance * 0.6
+            dhi = total_irradiance * 0.4
+        
+        ghi = total_irradiance
+        
+        # Convert to Lux (approximate conversion)
+        irradiance_lux = ghi * 120
+        
+        return {
+            "irradiance": max(0, min(120000, irradiance_lux)),
+            "dni": max(0, min(1000, dni)),
+            "dhi": max(0, min(800, dhi)),
+            "ghi": max(0, min(1000, ghi))
+        }
+    
+    def calculate_historical_power_output(self, irradiance_data: Dict, temperature: float, humidity: float, timestamp: datetime) -> Dict:
+        """Calculate power output with REALISTIC NON-ZERO VALUES"""
+        hour = timestamp.hour
+        
+        # Night time - minimal but non-zero values for system monitoring
+        if irradiance_data["irradiance"] == 0:
+            return {
+                "panel_voltage": 0.8,    # Small voltage for monitoring
+                "panel_current": 0.02,   # Minimal current
+                "raw_power": 0.0,
+                "actual_power": 0.0,
+                "efficiency": 0.0
+            }
+        
+        # Convert Lux to W/m²
+        irradiance_w_m2 = irradiance_data["irradiance"] / 120.0
+        
+        # Calculate panel performance - REALISTIC VALUES
+        panel_voltage = REAL_SOLAR_SPECS["voltage_max_power"] * (irradiance_w_m2 / 1000.0)**0.08
+        panel_current = REAL_SOLAR_SPECS["current_max_power"] * (irradiance_w_m2 / 1000.0)
+        
+        # Temperature compensation
+        temp_diff = temperature - REAL_SOLAR_SPECS["nominal_temp"]
+        voltage_temp_factor = 1 + (REAL_SOLAR_SPECS["temp_coefficient_voc"] * temp_diff)
+        panel_voltage *= voltage_temp_factor
+        
+        # Ensure realistic limits
+        panel_voltage = max(12.0, min(REAL_SOLAR_SPECS["open_circuit_voltage"], panel_voltage))
+        panel_current = max(0.1, min(REAL_SOLAR_SPECS["short_circuit_current"], panel_current))
+        
+        # Calculate power
+        raw_power = panel_voltage * panel_current
+        
+        # System efficiency (85-95%)
+        system_efficiency = 0.92 + np.random.normal(0, 0.02)
+        system_efficiency = max(0.85, min(0.95, system_efficiency))
+        
+        actual_power = raw_power * system_efficiency
+        
+        # Ensure power doesn't exceed panel rating
+        actual_power = min(actual_power, REAL_SOLAR_SPECS["max_power"])
+        
+        # Add realistic variation
+        power_variation = 1.0 + np.random.normal(0, 0.05)
+        actual_power = max(0.5, actual_power * power_variation)  # Minimum 0.5W during daytime
+        
+        # Efficiency calculation
+        max_possible_power = REAL_SOLAR_SPECS["max_power"] * (irradiance_w_m2 / 1000.0)
+        efficiency_ratio = actual_power / max_possible_power if max_possible_power > 0 else 0
+        
+        return {
+            "panel_voltage": round(panel_voltage, 1),
+            "panel_current": round(panel_current, 2),
+            "raw_power": round(raw_power, 1),
+            "actual_power": round(actual_power, 1),
+            "efficiency": round(efficiency_ratio, 3)
+        }
+    
+    def simulate_battery_behavior(self, solar_power: float, previous_soc: float, time_delta_hours: float, timestamp: datetime) -> Dict:
+        """Simulate battery behavior with REALISTIC CHARGING/DISCHARGING"""
+        hour = timestamp.hour
+        
+        # Variable load based on time of day (more realistic)
+        if 6 <= hour <= 8:   # Morning peak
+            load_power = np.random.uniform(25, 35)
+        elif 18 <= hour <= 22:  # Evening peak
+            load_power = np.random.uniform(30, 40)
+        elif 0 <= hour <= 5:    # Night - minimal
+            load_power = np.random.uniform(10, 20)
+        else:  # Daytime
+            load_power = np.random.uniform(20, 30)
+        
+        net_power = solar_power - load_power
+        
+        # Calculate battery changes
+        battery_capacity_wh = REAL_BATTERY_SPECS["nominal_voltage"] * REAL_BATTERY_SPECS["capacity"]
+        
+        if net_power > 0:  # Charging
+            charge_efficiency = REAL_BATTERY_SPECS["charge_efficiency"]
+            energy_added = net_power * time_delta_hours * charge_efficiency
+            soc_change = (energy_added / battery_capacity_wh) * 100
+        else:  # Discharging
+            energy_used = abs(net_power) * time_delta_hours
+            soc_change = -(energy_used / battery_capacity_wh) * 100
+        
+        new_soc = previous_soc + soc_change
+        # Keep SOC between 20-100% for battery health
+        new_soc = max(20.0, min(100.0, new_soc))
+        
+        # Calculate realistic battery voltage based on SOC and charging state
+        if net_power > 0:  # Charging
+            if new_soc >= 95:
+                battery_voltage = REAL_BATTERY_SPECS["float_voltage"]
+            elif new_soc >= 80:
+                battery_voltage = 13.8
+            else:
+                battery_voltage = 13.2 + (new_soc / 100) * 1.0
+        else:  # Discharging
+            # Realistic lead-acid discharge curve
+            if new_soc >= 80:
+                battery_voltage = 12.8
+            elif new_soc >= 50:
+                battery_voltage = 12.6
+            elif new_soc >= 30:
+                battery_voltage = 12.4
+            else:
+                battery_voltage = 12.2
+        
+        # Add small random variation
+        voltage_variation = np.random.normal(1.0, 0.01)
+        battery_voltage = round(battery_voltage * voltage_variation, 1)
+        
+        charge_current = net_power / REAL_BATTERY_SPECS["nominal_voltage"]
+        
+        return {
+            "battery_voltage": battery_voltage,
+            "state_of_charge": round(new_soc, 1),
+            "charge_current": round(charge_current, 2),
+            "net_power": round(net_power, 1),
+            "load_power": round(load_power, 1),
+            "new_soc": new_soc
+        }
+    
+    def determine_system_status(self, battery_voltage: float, state_of_charge: float, power_output: float, timestamp: datetime) -> Dict:
+        """Determine system status and recommendations"""
+        hour = timestamp.hour
+        
+        if battery_voltage <= 11.0:
+            status = "CRITICAL"
+            action = "Shut down non-essential loads"
+            max_load = 10
+            recommendation = "Disconnect all non-critical loads immediately"
+        elif battery_voltage <= 11.8:
+            status = "WARNING"
+            action = "Reduce power consumption"
+            max_load = 15
+            recommendation = "Turn off unnecessary devices"
+        elif state_of_charge < 30:
+            status = "CAUTION"
+            action = "Monitor battery level"
+            max_load = 20
+            recommendation = "Conserve energy, low battery"
+        elif power_output > 70 and state_of_charge > 85:
+            status = "OPTIMAL"
+            action = "Normal operation - excellent generation"
+            max_load = 40
+            recommendation = "System operating at peak performance"
+        elif power_output > 50:
+            status = "GOOD"
+            action = "Normal operation"
+            max_load = 35
+            recommendation = "Good solar generation"
+        elif power_output > 20:
+            status = "NORMAL"
+            action = "Normal operation"
+            max_load = 30
+            recommendation = "Adequate solar generation"
+        else:
+            status = "LOW_GENERATION"
+            action = "Monitor power consumption"
+            max_load = 25
+            recommendation = "Low solar generation, consider reducing load"
+        
+        # Night time adjustments
+        if not (6 <= hour <= 18) and power_output == 0:
+            if state_of_charge < 40:
+                status = "CAUTION"
+                action = "Conserve energy until morning"
+                max_load = 15
+                recommendation = "Minimize power usage until solar generation resumes"
+        
+        return {
+            "status": status,
+            "action": action,
+            "max_load": max_load,
+            "recommendation": recommendation
+        }
+
+    def generate_historical_data_for_location(self, location_name: str, initial_soc: float, climate_factor: float) -> List[Dict]:
+        """Generate complete historical dataset for a location"""
+        print(f"📊 Generating 5-minute interval historical data for {location_name} from October 1, 2025...")
+        
+        historical_records = []
+        current_datetime = self.start_date
+        current_soc = initial_soc
+        
+        while current_datetime <= self.end_date:
+            # Generate weather data
+            weather_data = self.generate_historical_weather_pattern(current_datetime, climate_factor)
+            
+            # Calculate solar irradiance
+            irradiance_data = self.calculate_historical_solar_irradiance(
+                current_datetime, weather_data, climate_factor
+            )
+            
+            # Calculate solar power output
+            solar_output = self.calculate_historical_power_output(
+                irradiance_data, weather_data["temperature"], weather_data["humidity"], current_datetime
+            )
+            
+            # Calculate battery behavior
+            battery_data = self.simulate_battery_behavior(
+                solar_output["actual_power"], current_soc, 1/12, current_datetime
+            )
+            current_soc = battery_data["new_soc"]
+            
+            # Determine system status
+            system_status = self.determine_system_status(
+                battery_data["battery_voltage"],
+                battery_data["state_of_charge"],
+                solar_output["actual_power"],
+                current_datetime
+            )
+            
+            # Efficiency classification
+            if solar_output["actual_power"] >= 70:
+                efficiency_class = 2  # High
+            elif solar_output["actual_power"] >= 30:
+                efficiency_class = 1  # Medium
+            else:
+                efficiency_class = 0  # Low
+            
+            # Create historical record
+            record = {
+                "Timestamp": current_datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                "Temperature": weather_data["temperature"],
+                "Humidity": weather_data["humidity"],
+                "Rainfall": weather_data["rainfall_mm"],
+                "Solar_Irradiance": round(irradiance_data["irradiance"], 0),
+                "Solar_DNI": round(irradiance_data["dni"], 1),
+                "Solar_DHI": round(irradiance_data["dhi"], 1),
+                "Panel_Voltage": solar_output["panel_voltage"],
+                "Panel_Current": solar_output["panel_current"],
+                "Raw_Power": solar_output["raw_power"],
+                "Actual_Power": solar_output["actual_power"],
+                "Panel_Efficiency": solar_output["efficiency"],
+                "Battery_Voltage": battery_data["battery_voltage"],
+                "State_of_Charge": battery_data["state_of_charge"],
+                "Charge_Current": battery_data["charge_current"],
+                "Net_Power": battery_data["net_power"],
+                "Load_Power": battery_data["load_power"],
+                "Efficiency_Class": efficiency_class,
+                "Load_Status": system_status["status"],
+                "Load_Action": system_status["action"],
+                "Max_Load": system_status["max_load"],
+                "Recommended_Action": system_status["recommendation"]
+            }
+            
+            historical_records.append(record)
+            
+            # Move to next 5-minute interval
+            current_datetime += timedelta(minutes=5)
+            
+            # Progress indicator every 12 hours of data
+            if len(historical_records) % 144 == 0:
+                days_generated = len(historical_records) / 288
+                print(f"  📅 Generated {days_generated:.1f} days of data...")
+        
+        print(f"✅ Generated {len(historical_records)} historical records for {location_name}")
+        print(f"   📊 Sample - Irradiance range: {min(r['Solar_Irradiance'] for r in historical_records if r['Solar_Irradiance'] > 0):,.0f} to {max(r['Solar_Irradiance'] for r in historical_records):,.0f} lux")
+        print(f"   ⚡ Sample - Power range: {min(r['Actual_Power'] for r in historical_records if r['Actual_Power'] > 0):.1f} to {max(r['Actual_Power'] for r in historical_records):.1f} W")
+        print(f"   🔋 Sample - Battery SOC range: {min(r['State_of_Charge'] for r in historical_records):.1f} to {max(r['State_of_Charge'] for r in historical_records):.1f}%")
+        
+        return historical_records
+
+
+class RealDataSimulator:
+    """Simulates real solar panel and battery data"""
+    
+    def __init__(self, location_name: str):
+        self.location_name = location_name
+        self.battery_state_of_charge = LOCATIONS[location_name]["battery_soc"]
+        self.battery_voltage = 12.8
+        self.last_update = datetime.now()
+        self.load_power = 25.0  # Average load power in Watts
+        
+class SolarSystem:
+    def __init__(self, alert_system: AlertSystem, real_data_simulator: RealDataSimulator):
+        self.alert_system = alert_system
+        self.real_data_simulator = real_data_simulator
+        
+    def calculate_real_output(self, temp: float, humidity: float, irradiance_data: Dict, location: str) -> Dict:
+        """Calculate real solar system output with actual panel and battery data"""
+        try:
+            # Calculate time delta for battery calculations
+            time_delta_hours = self.real_data_simulator.update_time()
+            
+            # Calculate real solar panel output
+            solar_output = self.real_data_simulator.calculate_real_solar_output(
+                irradiance_data["irradiance"], temp, humidity
+            )
+            
+            # Calculate real battery status
+            battery_status = self.real_data_simulator.calculate_real_battery_voltage(
+                solar_output["actual_power"], time_delta_hours
+            )
+            
+            # Generate alerts based on real conditions
+            self._check_real_conditions(temp, humidity, solar_output, battery_status, location)
+            
+            # FIXED: Use consistent key names - 'efficiency' should be 'panel_efficiency'
+            return {
+                "panel_voltage": solar_output["panel_voltage"],
+                "panel_current": solar_output["panel_current"],
+                "raw_power": solar_output["raw_power"],
+                "actual_power": solar_output["actual_power"],
+                "panel_efficiency": solar_output["efficiency"],  # Changed from "efficiency" to "panel_efficiency"
+                "battery_voltage": battery_status["battery_voltage"],
+                "state_of_charge": battery_status["state_of_charge"],
+                "charge_current": battery_status["charge_current"],
+                "net_power": battery_status["net_power"],
+                "load_power": battery_status["load_power"],
+                "battery_power": battery_status["battery_power"],
+                "power_direction": battery_status["power_direction"],
+                "efficiency_class": self._classify_efficiency(solar_output["actual_power"])
+            }
+        except Exception as e:
+            print(f"❌ Error in real output calculation: {e}")
+            return {
+                "panel_voltage": 0.0,
+                "panel_current": 0.0,
+                "raw_power": 0.0,
+                "actual_power": 0.0,
+                "panel_efficiency": 0.0,
+                "battery_voltage": 12.0,
+                "state_of_charge": 50.0,
+                "charge_current": 0.0,
+                "net_power": 0.0,
+                "load_power": 25.0,
+                "battery_power": 0.0,
+                "power_direction": "IDLE",
+                "efficiency_class": 0
+            }
+    
+    def _classify_efficiency(self, power: float) -> int:
+        efficiency = power / REAL_SOLAR_SPECS["max_power"]
+        if efficiency < 0.3:
+            return 0  # Low
+        elif efficiency < 0.7:
+            return 1  # Medium
+        return 2  # High
+    
+    def _check_real_conditions(self, temp: float, humidity: float, solar_output: Dict, battery_status: Dict, location: str):
+        # Temperature alerts
+        if temp >= ALERT_THRESHOLDS["temperature"]["critical"]:
+            self.alert_system.add_alert(
+                location, "temperature", "critical",
+                f"Critical temperature ({temp:.1f}°C) affecting solar panel efficiency"
+            )
+        elif temp >= ALERT_THRESHOLDS["temperature"]["warning"]:
+            self.alert_system.add_alert(
+                location, "temperature", "warning",
+                f"High temperature ({temp:.1f}°C) may reduce efficiency"
+            )
+        
+        # Humidity alerts
+        if humidity >= ALERT_THRESHOLDS["humidity"]["high"]:
+            self.alert_system.add_alert(
+                location, "humidity", "warning",
+                f"High humidity ({humidity:.1f}%) may affect panel performance"
+            )
+        
+        # Power output alerts
+        if solar_output["actual_power"] < ALERT_THRESHOLDS["power"]["low"]:
+            self.alert_system.add_alert(
+                location, "power", "warning",
+                f"Low power output ({solar_output['actual_power']:.1f}W)"
+            )
+        
+        # Battery alerts
+        if battery_status["battery_voltage"] <= ALERT_THRESHOLDS["battery"]["critical"]:
+            self.alert_system.add_alert(
+                location, "battery", "critical",
+                f"Critical battery voltage ({battery_status['battery_voltage']:.1f}V) - SOC: {battery_status['state_of_charge']:.1f}%"
+            )
+        elif battery_status["battery_voltage"] <= ALERT_THRESHOLDS["battery"]["warning"]:
+            self.alert_system.add_alert(
+                location, "battery", "warning",
+                f"Low battery voltage ({battery_status['battery_voltage']:.1f}V) - SOC: {battery_status['state_of_charge']:.1f}%"
+            )
+    
+    def calculate_real_battery_voltage(self, solar_power: float, time_delta_hours: float) -> Dict:
+        """Calculate real battery voltage based on charging/discharging"""
+        try:
+            # Calculate net power (solar power minus load)
+            net_power = solar_power - self.load_power
+            
+            # Calculate charge/discharge current
+            if net_power > 0:  # Charging
+                charge_current = net_power / REAL_BATTERY_SPECS["nominal_voltage"]
+                charge_efficiency = REAL_BATTERY_SPECS["charge_efficiency"]
+            else:  # Discharging
+                charge_current = net_power / REAL_BATTERY_SPECS["nominal_voltage"]
+                charge_efficiency = 1.0
+            
+            # Calculate energy transfer
+            energy_change_wh = net_power * time_delta_hours * charge_efficiency
+            
+            # Update State of Charge
+            battery_capacity_wh = REAL_BATTERY_SPECS["nominal_voltage"] * REAL_BATTERY_SPECS["capacity"]
+            soc_change = (energy_change_wh / battery_capacity_wh) * 100
+            
+            self.battery_state_of_charge += soc_change
+            self.battery_state_of_charge = max(0, min(100, self.battery_state_of_charge))
+            
+            # Calculate battery voltage based on SOC and charging state
+            if net_power > 0:  # Charging
+                if self.battery_state_of_charge > 95:
+                    battery_voltage = REAL_BATTERY_SPECS["float_voltage"]
+                else:
+                    battery_voltage = REAL_BATTERY_SPECS["max_charge_voltage"] * (self.battery_state_of_charge / 100)**0.1
+            else:  # Discharging or idle
+                # Typical lead-acid discharge curve
+                soc_factor = self.battery_state_of_charge / 100.0
+                if soc_factor > 0.8:
+                    battery_voltage = 12.8 + (soc_factor - 0.8) * 2.0
+                elif soc_factor > 0.5:
+                    battery_voltage = 12.4 + (soc_factor - 0.5) * 0.8
+                elif soc_factor > 0.2:
+                    battery_voltage = 12.0 + (soc_factor - 0.2) * 0.8
+                else:
+                    battery_voltage = REAL_BATTERY_SPECS["cutoff_voltage"] + (soc_factor) * 1.0
+            
+            # Add realistic noise
+            voltage_variation = 1.0 + np.random.normal(0, 0.01)
+            battery_voltage *= voltage_variation
+            
+            # Update battery voltage
+            self.battery_voltage = max(REAL_BATTERY_SPECS["cutoff_voltage"], round(battery_voltage, 2))
+            
+            return {
+                "battery_voltage": self.battery_voltage,
+                "state_of_charge": round(self.battery_state_of_charge, 1),
+                "charge_current": round(charge_current, 2),
+                "net_power": round(net_power, 2),
+                "load_power": self.load_power
+            }
+        except Exception as e:
+            print(f"Error in battery calculation: {e}")
+            return {
+                "battery_voltage": 12.0,
+                "state_of_charge": 50.0,
+                "charge_current": 0.0,
+                "net_power": 0.0,
+                "load_power": self.load_power
+            }
+    
+    def update_load_power(self, new_load: float):
+        """Update the load power consumption"""
+        self.load_power = max(0, new_load)
+    
+    def update_time(self):
+        """Update time tracking for battery calculations"""
+        current_time = datetime.now()
+        time_delta = current_time - self.last_update
+        self.last_update = current_time
+        return time_delta.total_seconds() / 3600.0
 
 class AlertSystem:
     def __init__(self):
@@ -105,11 +803,24 @@ class AlertSystem:
             try:
                 db_name = f"solar_alerts_{location.lower()}.db"
                 conn = sqlite3.connect(db_name)
+                
+                # Create alerts table if it doesn't exist
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS alerts (
+                        timestamp TEXT,
+                        location TEXT,
+                        type TEXT,
+                        severity TEXT,
+                        message TEXT
+                    )
+                ''')
+                
                 df = pd.DataFrame([vars(alert) for alert in self.alerts])
                 df.to_sql("alerts", conn, if_exists="append", index=False)
                 conn.close()
+                print(f"✅ Saved {len(self.alerts)} alerts for {location}")
             except Exception as e:
-                print(f"Error saving alerts for {location}: {e}")
+                print(f"❌ Error saving alerts for {location}: {e}")
 
 class WeatherMonitor:
     def __init__(self, openweather_key: str, nrel_key: str):
@@ -128,11 +839,14 @@ class WeatherMonitor:
                 "appid": self.openweather_key,
                 "units": "metric"
             }
+            print(f"🌤️  Fetching weather data for lat={lat}, lon={lon}")
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            print(f"✅ Weather data received: {data.get('name', 'Unknown')}")
+            return data
         except Exception as e:
-            print(f"Error fetching OpenWeather data: {e}")
+            print(f"❌ Error fetching OpenWeather data: {e}")
             return None
 
     def get_nrel_solar_data(self, lat: float, lon: float, altitude: float) -> Dict:
@@ -147,15 +861,13 @@ class WeatherMonitor:
             params = {
                 "api_key": self.nrel_key,
                 "lat": lat,
-                "lon": lon,
-                "system_capacity": 1,  # 1 kW system
-                "azimuth": 180,        # South-facing
-                "tilt": abs(lat),      # Tilt = latitude for optimal year-round performance
-                "dataset": "intl"      # International dataset
+                "lon": lon
             }
+            print(f"☀️  Fetching NREL solar data")
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
+            print("✅ NREL solar data received")
             
             self.solar_cache[cache_key] = {
                 "timestamp": datetime.now(),
@@ -163,212 +875,119 @@ class WeatherMonitor:
             }
             return data
         except Exception as e:
-            print(f"Error fetching NREL solar data: {e}")
+            print(f"❌ Error fetching NREL solar data: {e}")
             return None
 
-    def get_pvwatts_data(self, lat: float, lon: float) -> Dict:
-        """Get detailed PV system performance data from PVWatts."""
+    def calculate_solar_irradiance(self, weather_data: Dict, nrel_data: Dict) -> Dict:
+        """Calculate comprehensive solar irradiance."""
+        if not weather_data:
+            return {"irradiance": 0.0, "dni": 0.0, "dhi": 0.0}
+        
+        current_hour = datetime.now().hour
+        if not (6 <= current_hour <= 18):  # Night time
+            return {"irradiance": 0.0, "dni": 0.0, "dhi": 0.0}
+        
         try:
-            url = "https://developer.nrel.gov/api/pvwatts/v6.json"
-            params = {
-                "api_key": self.nrel_key,
-                "lat": lat,
-                "lon": lon,
-                **PV_SYSTEM_CONFIG,
-                "timeframe": "hourly"
-            }
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
+            # Get cloud coverage from OpenWeather
+            clouds = weather_data.get("clouds", {}).get("all", 0)
+            cloud_factor = 1 - (clouds / 100) * 0.7
             
-            # Get current hour's data
-            hour = datetime.now().hour
-            day_of_year = datetime.now().timetuple().tm_yday
-            index = (day_of_year - 1) * 24 + hour
+            # Get baseline values from NREL
+            baseline = 1000
+            if nrel_data and "outputs" in nrel_data and "avg_dni" in nrel_data["outputs"]:
+                baseline = nrel_data["outputs"]["avg_dni"].get("annual", 1000)
+            
+            # Adjust for time of day
+            time_factor = np.sin((current_hour - 6) * np.pi / 12)
+            time_factor = max(0, time_factor)
+            
+            # Calculate components
+            dni = baseline * cloud_factor * time_factor
+            dhi = dni * 0.2
+            
+            # Calculate total irradiance
+            solar_angle = abs(np.cos((current_hour - 12) * np.pi / 12))
+            total_irradiance = dni * solar_angle + dhi
+            
+            # Convert to Lux
+            irradiance_lux = total_irradiance * 120
             
             return {
-                "ac": data["outputs"]["ac"][index],  # AC power output
-                "dc": data["outputs"]["dc"][index],  # DC power output
-                "poa": data["outputs"]["poa"][index]  # Plane of array irradiance
+                "irradiance": max(0, min(180000, irradiance_lux)),
+                "dni": max(0, min(1200, dni)),
+                "dhi": max(0, min(500, dhi))
             }
         except Exception as e:
-            print(f"Error fetching PVWatts data: {e}")
-            return None
-
-    def calculate_solar_irradiance(self, weather_data: Dict, nrel_data: Dict, pvwatts_data: Dict) -> Dict:
-        """Calculate comprehensive solar irradiance using multiple data sources."""
-        if not all([weather_data, nrel_data]):
-            return {"ghi": 0.0, "dni": 0.0, "dhi": 0.0}
-        
-        current_hour = datetime.now().hour
-        if not (6 <= current_hour <= 18):  # Night time
-            return {"ghi": 0.0, "dni": 0.0, "dhi": 0.0}
-        
-        # Get cloud coverage from OpenWeather
-        clouds = weather_data.get("clouds", {}).get("all", 0)
-        cloud_factor = 1 - (clouds / 100) * 0.7
-        
-        # Get baseline values from NREL
-        baseline = nrel_data.get("outputs", {}).get("avg_dni", {}).get("annual", 1000)
-        
-        # Adjust for time of day
-        time_factor = np.sin((current_hour - 6) * np.pi / 12)
-        time_factor = max(0, time_factor)  # Ensure non-negative
-        
-        # Calculate components
-        dni = baseline * cloud_factor * time_factor  # Direct Normal Irradiance
-        dhi = dni * 0.2  # Diffuse Horizontal Irradiance (simplified)
-        
-        # Calculate GHI with proper solar angle consideration
-        solar_angle = abs(np.cos((current_hour - 12) * np.pi / 12))
-        ghi = dni * solar_angle + dhi  # Global Horizontal Irradiance
-        
-        # If we have PVWatts data, use it to refine our estimates
-        if pvwatts_data and isinstance(pvwatts_data, dict):
-            poa_irradiance = pvwatts_data.get("poa", 0)
-            if poa_irradiance > 0:
-                # Adjust our estimates based on PVWatts plane of array irradiance
-                adjustment_factor = poa_irradiance / (ghi + 0.1)  # Avoid division by zero
-                ghi *= adjustment_factor
-                dni *= adjustment_factor
-                dhi *= adjustment_factor
-        
-        return {
-            "ghi": max(0, min(1500, ghi)),  # Global Horizontal Irradiance, capped at reasonable maximum
-            "dni": max(0, min(1200, dni)),  # Direct Normal Irradiance
-            "dhi": max(0, min(500, dhi))    # Diffuse Horizontal Irradiance
-        }
-        
-        current_hour = datetime.now().hour
-        if not (6 <= current_hour <= 18):  # Night time
-            return {"ghi": 0.0, "dni": 0.0, "dhi": 0.0}
-        
-        # Get cloud coverage from OpenWeather
-        clouds = weather_data.get("clouds", {}).get("all", 0)
-        cloud_factor = 1 - (clouds / 100) * 0.7
-        
-        # Get baseline values from NREL
-        baseline = nrel_data.get("outputs", {}).get("avg_dni", {}).get("annual", 1000)
-        
-        # Adjust for time of day
-        time_factor = np.sin((current_hour - 6) * np.pi / 12)
-        
-        # Calculate components
-        dni = baseline * cloud_factor * time_factor  # Direct Normal Irradiance
-        dhi = dni * 0.2  # Diffuse Horizontal Irradiance (simplified)
-        ghi = dni * np.cos((current_hour - 12) * np.pi / 12) + dhi  # Global Horizontal Irradiance
-        
-        # If we have Solcast data, use it to refine our estimates
-        if solcast_data and "forecasts" in solcast_data:
-            current_forecast = solcast_data["forecasts"][0]
-            ghi = current_forecast.get("ghi", ghi)
-            dni = current_forecast.get("dni", dni)
-            dhi = current_forecast.get("dhi", dhi)
-        
-        return {
-            "ghi": max(0, ghi),  # Global Horizontal Irradiance
-            "dni": max(0, dni),  # Direct Normal Irradiance
-            "dhi": max(0, dhi)   # Diffuse Horizontal Irradiance
-        }
+            print(f"❌ Error calculating solar irradiance: {e}")
+            return {"irradiance": 0.0, "dni": 0.0, "dhi": 0.0}
 
 class SolarSystem:
-    def __init__(self, specs: Dict, alert_system: AlertSystem):
-        self.specs = specs
+    def __init__(self, alert_system: AlertSystem, real_data_simulator: RealDataSimulator):
         self.alert_system = alert_system
+        self.real_data_simulator = real_data_simulator
         
-    def calculate_output(self, temp: float, humidity: float, irradiance_data: Dict, location: str) -> Dict:
-        # Input validation
-        if not isinstance(irradiance_data, dict) or not all(k in irradiance_data for k in ["ghi", "dni", "dhi"]):
+    def calculate_real_output(self, temp: float, humidity: float, irradiance_data: Dict, location: str) -> Dict:
+        """Calculate real solar system output with actual panel and battery data"""
+        try:
+            # Calculate time delta for battery calculations
+            time_delta_hours = self.real_data_simulator.update_time()
+            
+            # Calculate real solar panel output
+            solar_output = self.real_data_simulator.calculate_real_solar_output(
+                irradiance_data["irradiance"], temp, humidity
+            )
+            
+            # Calculate real battery status
+            battery_status = self.real_data_simulator.calculate_real_battery_voltage(
+                solar_output["actual_power"], time_delta_hours
+            )
+            
+            # Generate alerts based on real conditions
+            self._check_real_conditions(temp, humidity, solar_output, battery_status, location)
+            
+            # FIXED: Use consistent key names - 'efficiency' should be 'panel_efficiency'
             return {
-                "voltage": 0.0,
-                "current": 0.0,
-                "power": 0.0,
+                "panel_voltage": solar_output["panel_voltage"],
+                "panel_current": solar_output["panel_current"],
+                "raw_power": solar_output["raw_power"],
+                "actual_power": solar_output["actual_power"],
+                "panel_efficiency": solar_output["efficiency"],  # Changed from "efficiency" to "panel_efficiency"
+                "battery_voltage": battery_status["battery_voltage"],
+                "state_of_charge": battery_status["state_of_charge"],
+                "charge_current": battery_status["charge_current"],
+                "net_power": battery_status["net_power"],
+                "load_power": battery_status["load_power"],
+                "battery_power": battery_status["battery_power"],
+                "power_direction": battery_status["power_direction"],
+                "efficiency_class": self._classify_efficiency(solar_output["actual_power"])
+            }
+        except Exception as e:
+            print(f"❌ Error in real output calculation: {e}")
+            return {
+                "panel_voltage": 0.0,
+                "panel_current": 0.0,
+                "raw_power": 0.0,
+                "actual_power": 0.0,
+                "panel_efficiency": 0.0,
+                "battery_voltage": 12.0,
+                "state_of_charge": 50.0,
+                "charge_current": 0.0,
+                "net_power": 0.0,
+                "load_power": 25.0,
+                "battery_power": 0.0,
+                "power_direction": "IDLE",
                 "efficiency_class": 0
             }
-
-        # Temperature effect
-        temp_diff = temp - self.specs["nominal_temp"]
-        temp_factor = 1 + (self.specs["temp_coefficient"] * temp_diff)
-        temp_factor = max(0.6, min(1.2, temp_factor))  # Limit temperature factor range
-        
-        # Humidity effect (high humidity reduces efficiency)
-        humidity_factor = 1 - max(0, min(0.3, (humidity - 75) / 100 * 0.1))  # Cap humidity reduction
-        
-        # Calculate panel tilt factor based on latitude
-        tilt_factor = np.cos(np.radians(PV_SYSTEM_CONFIG["tilt"]))
-        
-        # Use total irradiance with proper tilt consideration
-        total_irradiance = (irradiance_data["ghi"] + 
-                          (irradiance_data["dni"] * tilt_factor) + 
-                          (irradiance_data["dhi"] * 0.5))  # Improved tilt factor
-        
-        # Apply time of day factor
-        hour = datetime.now().hour
-        time_factor = np.sin((hour - 6) * np.pi / 12) if 6 <= hour <= 18 else 0
-        total_irradiance *= max(0, time_factor)
-        
-        # Calculate voltage considering irradiance components
-        voltage_base = self.specs["max_voltage"] * (total_irradiance / 1000)
-        voltage_direct = voltage_base * 0.85  # Direct component
-        voltage_diffuse = (irradiance_data["dhi"] / 1000) * self.specs["max_voltage"] * 0.15
-        voltage = (voltage_direct + voltage_diffuse) * temp_factor * humidity_factor
-        
-        # Calculate current with similar consideration
-        current_base = self.specs["max_current"] * (total_irradiance / 1000)
-        current_direct = current_base * 0.85
-        current_diffuse = (irradiance_data["dhi"] / 1000) * self.specs["max_current"] * 0.15
-        current = (current_direct + current_diffuse) * temp_factor * humidity_factor
-        
-        # Apply environmental factors
-        env_factor = self._calculate_environmental_factor(temp, humidity)
-        voltage *= env_factor
-        current *= env_factor
-        
-        # Clip to valid ranges
-        voltage = np.clip(voltage, 0, self.specs["max_voltage"])
-        current = np.clip(current, 0, self.specs["max_current"])
-        
-        # Calculate power with efficiency consideration
-        power = voltage * current
-        
-        # Apply system losses from PVWatts configuration
-        power *= (1 - PV_SYSTEM_CONFIG["losses"] / 100)
-        
-        # Generate alerts based on conditions
-        self._check_conditions(temp, humidity, power, location)
-        
-        return {
-            "voltage": voltage,
-            "current": current,
-            "power": power,
-            "efficiency_class": self._classify_efficiency(power)
-        }
-        
-    def _calculate_environmental_factor(self, temp: float, humidity: float) -> float:
-        """Calculate environmental impact factor (0-1) based on temperature and humidity."""
-        # Temperature effect (decreases efficiency as temperature rises above nominal)
-        temp_effect = 1.0
-        if temp > self.specs["nominal_temp"]:
-            temp_diff = temp - self.specs["nominal_temp"]
-            temp_effect = max(0.7, 1.0 - (temp_diff * 0.005))  # 0.5% reduction per degree above nominal
-        
-        # Humidity effect (high humidity reduces efficiency)
-        humidity_effect = 1.0
-        if humidity > 70:
-            humidity_effect = max(0.8, 1.0 - ((humidity - 70) * 0.005))  # 0.5% reduction per % above 70%
-        
-        # Combined effect
-        return temp_effect * humidity_effect
     
     def _classify_efficiency(self, power: float) -> int:
-        efficiency = power / self.specs["max_power"]
+        efficiency = power / REAL_SOLAR_SPECS["max_power"]
         if efficiency < 0.3:
             return 0  # Low
         elif efficiency < 0.7:
             return 1  # Medium
         return 2  # High
     
-    def _check_conditions(self, temp: float, humidity: float, power: float, location: str):
+    def _check_real_conditions(self, temp: float, humidity: float, solar_output: Dict, battery_status: Dict, location: str):
         # Temperature alerts
         if temp >= ALERT_THRESHOLDS["temperature"]["critical"]:
             self.alert_system.add_alert(
@@ -389,36 +1008,53 @@ class SolarSystem:
             )
         
         # Power output alerts
-        if power < ALERT_THRESHOLDS["power"]["low"]:
+        if solar_output["actual_power"] < ALERT_THRESHOLDS["power"]["low"]:
             self.alert_system.add_alert(
                 location, "power", "warning",
-                f"Low power output ({power:.1f}W) - check for issues"
+                f"Low power output ({solar_output['actual_power']:.1f}W)"
             )
-
-class LoadManager:
-    def __init__(self, alert_system: AlertSystem):
-        self.alert_system = alert_system
         
-    def get_recommendation(self, battery_voltage: float, power_output: float, location: str) -> Dict:
+        # Battery alerts
+        if battery_status["battery_voltage"] <= ALERT_THRESHOLDS["battery"]["critical"]:
+            self.alert_system.add_alert(
+                location, "battery", "critical",
+                f"Critical battery voltage ({battery_status['battery_voltage']:.1f}V) - SOC: {battery_status['state_of_charge']:.1f}%"
+            )
+        elif battery_status["battery_voltage"] <= ALERT_THRESHOLDS["battery"]["warning"]:
+            self.alert_system.add_alert(
+                location, "battery", "warning",
+                f"Low battery voltage ({battery_status['battery_voltage']:.1f}V) - SOC: {battery_status['state_of_charge']:.1f}%"
+            )
+            
+class LoadManager:
+    def __init__(self, alert_system: AlertSystem, real_data_simulator: RealDataSimulator):
+        self.alert_system = alert_system
+        self.real_data_simulator = real_data_simulator
+        
+    def get_recommendation(self, battery_voltage: float, state_of_charge: float, power_output: float, location: str) -> Dict:
         if battery_voltage <= ALERT_THRESHOLDS["battery"]["critical"]:
             self.alert_system.add_alert(
                 location, "battery", "critical",
                 "Critical battery level - shut down non-essential loads"
             )
+            self.real_data_simulator.update_load_power(10.0)
             return {
                 "status": "CRITICAL",
                 "action": "Shut down non-essential loads",
-                "max_load": 50  # W
+                "max_load": 10,
+                "recommended_action": "Disconnect all non-critical loads immediately"
             }
         elif battery_voltage <= ALERT_THRESHOLDS["battery"]["warning"]:
             self.alert_system.add_alert(
                 location, "battery", "warning",
                 "Low battery level - reduce power consumption"
             )
+            self.real_data_simulator.update_load_power(15.0)
             return {
                 "status": "WARNING",
                 "action": "Reduce power consumption",
-                "max_load": 100  # W
+                "max_load": 15,
+                "recommended_action": "Turn off unnecessary devices"
             }
         elif power_output < ALERT_THRESHOLDS["power"]["low"]:
             self.alert_system.add_alert(
@@ -428,18 +1064,25 @@ class LoadManager:
             return {
                 "status": "CAUTION",
                 "action": "Monitor power consumption",
-                "max_load": 150  # W
+                "max_load": 25,
+                "recommended_action": "Consider reducing load if generation remains low"
             }
-        return {
-            "status": "NORMAL",
-            "action": "Normal operation",
-            "max_load": None
-        }
-
-    class WeatherData:
-    def __init__(self, temp: float, humidity: float):
-        self.temp = temp
-        self.humidity = humidity
+        elif state_of_charge > 90:
+            self.real_data_simulator.update_load_power(35.0)
+            return {
+                "status": "OPTIMAL",
+                "action": "Normal operation - good generation",
+                "max_load": 35,
+                "recommended_action": "System operating optimally"
+            }
+        else:
+            self.real_data_simulator.update_load_power(25.0)
+            return {
+                "status": "NORMAL",
+                "action": "Normal operation",
+                "max_load": 25,
+                "recommended_action": "Monitor system performance"
+            }
 
 class LocationData:
     def __init__(self, lat: float, lon: float, altitude: float):
@@ -453,248 +1096,521 @@ class MonitoringData:
         timestamp: str,
         temperature: float,
         humidity: float,
-        solar_ghi: float,
+        solar_irradiance: float,
         solar_dni: float,
         solar_dhi: float,
-        solar_voltage: float,
-        solar_current: float,
-        power_output: float,
-        efficiency_class: int,
+        panel_voltage: float,
+        panel_current: float,
+        raw_power: float,
+        actual_power: float,
+        panel_efficiency: float,
         battery_voltage: float,
+        state_of_charge: float,
+        charge_current: float,
+        net_power: float,
+        load_power: float,
+        efficiency_class: int,
         load_status: str,
         load_action: str,
-        max_load: Union[float, None]
+        max_load: Union[float, None],
+        recommended_action: str
     ):
         self.timestamp = timestamp
         self.temperature = temperature
         self.humidity = humidity
-        self.solar_ghi = solar_ghi
+        self.solar_irradiance = solar_irradiance
         self.solar_dni = solar_dni
         self.solar_dhi = solar_dhi
-        self.solar_voltage = solar_voltage
-        self.solar_current = solar_current
-        self.power_output = power_output
-        self.efficiency_class = efficiency_class
+        self.panel_voltage = panel_voltage
+        self.panel_current = panel_current
+        self.raw_power = raw_power
+        self.actual_power = actual_power
+        self.panel_efficiency = panel_efficiency
         self.battery_voltage = battery_voltage
+        self.state_of_charge = state_of_charge
+        self.charge_current = charge_current
+        self.net_power = net_power
+        self.load_power = load_power
+        self.efficiency_class = efficiency_class
         self.load_status = load_status
         self.load_action = load_action
         self.max_load = max_load
+        self.recommended_action = recommended_action
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "Timestamp": self.timestamp,
             "Temperature": round(self.temperature, 2),
             "Humidity": round(self.humidity, 2),
-            "Solar_GHI": round(self.solar_ghi, 2),
+            "Solar_Irradiance": round(self.solar_irradiance, 2),
             "Solar_DNI": round(self.solar_dni, 2),
             "Solar_DHI": round(self.solar_dhi, 2),
-            "Solar_Voltage": round(self.solar_voltage, 2),
-            "Solar_Current": round(self.solar_current, 2),
-            "Power_Output": round(self.power_output, 2),
+            "Panel_Voltage": round(self.panel_voltage, 2),
+            "Panel_Current": round(self.panel_current, 2),
+            "Raw_Power": round(self.raw_power, 2),
+            "Actual_Power": round(self.actual_power, 2),
+            "Panel_Efficiency": round(self.panel_efficiency, 3),
+            "Battery_Voltage": round(self.battery_voltage, 2),
+            "State_of_Charge": round(self.state_of_charge, 1),
+            "Charge_Current": round(self.charge_current, 2),
+            "Net_Power": round(self.net_power, 2),
+            "Load_Power": round(self.load_power, 2),
             "Efficiency_Class": self.efficiency_class,
-            "Battery_Voltage": self.battery_voltage,
             "Load_Status": self.load_status,
             "Load_Action": self.load_action,
-            "Max_Load": self.max_load
+            "Max_Load": self.max_load,
+            "Recommended_Action": self.recommended_action
         }
-
+    
+def generate_historical_data_standalone():
+    """Standalone function to generate historical data"""
+    print("🗃️  Generating historical data standalone...")
+    historical_generator = HistoricalDataGenerator()
+    
+    for location_name, location_data in LOCATIONS.items():
+        print(f"📊 Generating data for {location_name}...")
+        historical_records = historical_generator.generate_historical_data_for_location(
+            location_name, 
+            location_data["battery_soc"],
+            location_data["climate_factor"]
+        )
+        
+        # Save to database
+        monitoring_db = f"solar_monitoring_{location_name.lower().replace(' ', '_')}.db"
+        conn = sqlite3.connect(monitoring_db)
+        conn.execute("DROP TABLE IF EXISTS monitoring")
+        conn.execute('''
+    CREATE TABLE monitoring (
+        Timestamp TEXT PRIMARY KEY,
+        Temperature REAL,
+        Humidity REAL,
+        Rainfall REAL,
+        Solar_Irradiance REAL,
+        Solar_DNI REAL,
+        Solar_DHI REAL,
+        Panel_Voltage REAL,
+        Panel_Current REAL,
+        Raw_Power REAL,
+        Actual_Power REAL,
+        Panel_Efficiency REAL,
+        Battery_Voltage REAL,
+        State_of_Charge REAL,
+        Charge_Current REAL,
+        Net_Power REAL,
+        Load_Power REAL,
+        Battery_Power REAL,
+        Power_Direction TEXT,
+        Efficiency_Class INTEGER,
+        Load_Status TEXT,
+        Load_Action TEXT,
+        Max_Load REAL,
+        Recommended_Action TEXT
+    )
+''')
+        
+        if historical_records:
+            batch_size = 1000
+            for i in range(0, len(historical_records), batch_size):
+                batch = historical_records[i:i + batch_size]
+                df = pd.DataFrame(batch)
+                df.to_sql("monitoring", conn, if_exists="append", index=False)
+            print(f"✅ Added {len(historical_records)} records to {monitoring_db}")
+            
+            # Display sample data to verify realistic values
+            print(f"📈 Sample data for {location_name}:")
+            # Show samples from different times
+            morning_sample = next((r for r in historical_records if ' 08:00:00' in r['Timestamp']), None)
+            noon_sample = next((r for r in historical_records if ' 12:00:00' in r['Timestamp']), None)
+            night_sample = next((r for r in historical_records if ' 20:00:00' in r['Timestamp']), None)
+            
+            for sample in [morning_sample, noon_sample, night_sample]:
+                if sample:
+                    time_label = sample['Timestamp'].split(' ')[1]
+                    weather_icon = "🌧️" if sample['Rainfall'] > 0 else "☀️" if sample['Solar_Irradiance'] > 50000 else "☁️"
+                    print(f"  {weather_icon} {time_label} - "
+                          f"Temp: {sample['Temperature']}°C, "
+                          f"Humidity: {sample['Humidity']}%, "
+                          f"Rain: {sample['Rainfall']}mm, "
+                          f"Irradiance: {sample['Solar_Irradiance']:,.0f} lux, "
+                          f"Power: {sample['Actual_Power']}W, "
+                          f"Battery: {sample['Battery_Voltage']}V ({sample['State_of_Charge']}%)")
+        
+        conn.close()
+def calculate_real_battery_voltage(self, solar_power: float, time_delta_hours: float) -> Dict:
+    """Calculate real LiPo battery voltage based on charging/discharging"""
+    try:
+        # Calculate net power (solar power minus load)
+        net_power = solar_power - self.load_power
+        
+        # Calculate charge/discharge current
+        if net_power > 0:  # Charging
+            charge_current = net_power / REAL_BATTERY_SPECS["nominal_voltage"]
+            # Limit charge current to max charge current
+            charge_current = min(charge_current, REAL_BATTERY_SPECS["max_charge_current"])
+            charge_efficiency = REAL_BATTERY_SPECS["charge_efficiency"]
+            battery_power = net_power * charge_efficiency  # Power going into battery
+            power_direction = "CHARGING"
+        else:  # Discharging
+            charge_current = net_power / REAL_BATTERY_SPECS["nominal_voltage"]
+            # Limit discharge current to max discharge current (absolute value)
+            if abs(charge_current) > REAL_BATTERY_SPECS["max_discharge_current"]:
+                charge_current = -REAL_BATTERY_SPECS["max_discharge_current"]
+            charge_efficiency = 1.0
+            battery_power = net_power  # Power coming from battery
+            power_direction = "DISCHARGING"
+        
+        # Calculate energy transfer
+        energy_change_wh = net_power * time_delta_hours * charge_efficiency
+        
+        # Update State of Charge
+        battery_capacity_wh = REAL_BATTERY_SPECS["nominal_voltage"] * REAL_BATTERY_SPECS["capacity"]
+        soc_change = (energy_change_wh / battery_capacity_wh) * 100
+        
+        self.battery_state_of_charge += soc_change
+        # LiPo can safely discharge to 20% (80% DoD)
+        self.battery_state_of_charge = max(20.0, min(100, self.battery_state_of_charge))
+        
+        # Calculate LiPo battery voltage based on SOC - LiPo has flatter discharge curve
+        soc_percent = self.battery_state_of_charge / 100.0
+        
+        if net_power > 0:  # Charging
+            if self.battery_state_of_charge >= 95:
+                # Constant voltage stage
+                battery_voltage = REAL_BATTERY_SPECS["max_charge_voltage"]
+            else:
+                # Constant current stage - voltage rises with SOC
+                battery_voltage = 11.4 + (soc_percent * 1.2)  # 11.4V to 12.6V
+        else:  # Discharging
+            # LiPo discharge curve is relatively flat
+            if soc_percent > 0.8:    # 80-100% SOC
+                battery_voltage = 12.4 - (1 - soc_percent) * 0.8
+            elif soc_percent > 0.5:  # 50-80% SOC
+                battery_voltage = 12.2 - (0.8 - soc_percent) * 0.4
+            elif soc_percent > 0.3:  # 30-50% SOC
+                battery_voltage = 12.0 - (0.5 - soc_percent) * 0.4
+            elif soc_percent > 0.2:  # 20-30% SOC
+                battery_voltage = 11.6 - (0.3 - soc_percent) * 1.0
+            else:                    # Below 20% SOC (shouldn't reach here due to min SOC)
+                battery_voltage = REAL_BATTERY_SPECS["cutoff_voltage"]
+        
+        # Add realistic noise
+        voltage_variation = 1.0 + np.random.normal(0, 0.005)  # Less variation for LiPo
+        battery_voltage *= voltage_variation
+        
+        # Update battery voltage
+        self.battery_voltage = max(REAL_BATTERY_SPECS["cutoff_voltage"], round(battery_voltage, 2))
+        
+        # Recalculate net power based on current limits
+        if net_power > 0:
+            net_power = min(charge_current * REAL_BATTERY_SPECS["nominal_voltage"], net_power)
+        else:
+            net_power = max(charge_current * REAL_BATTERY_SPECS["nominal_voltage"], net_power)
+        
+        return {
+            "battery_voltage": self.battery_voltage,
+            "state_of_charge": round(self.battery_state_of_charge, 1),
+            "charge_current": round(charge_current, 2),
+            "net_power": round(net_power, 2),
+            "load_power": self.load_power,
+            "battery_power": round(battery_power, 2),
+            "power_direction": power_direction,
+            "battery_type": "LiPo"
+        }
+    except Exception as e:
+        print(f"Error in LiPo battery calculation: {e}")
+        return {
+            "battery_voltage": 12.2,
+            "state_of_charge": 50.0,
+            "charge_current": 0.0,
+            "net_power": 0.0,
+            "load_power": self.load_power,
+            "battery_power": 0.0,
+            "power_direction": "IDLE",
+            "battery_type": "LiPo"
+        }
+    
 class MonitoringSystem:
-    def __init__(self):
-        self.weather_monitor = WeatherMonitor(OPENWEATHER_API_KEY, NREL_API_KEY)
-        self.solar_system = SolarSystem(SOLAR_SPECS, AlertSystem())
-        self.load_manager = LoadManager(AlertSystem())
+    def __init__(self, openweather_key: str, nrel_key: str):
+        self.weather_monitor = WeatherMonitor(openweather_key, nrel_key)
+        self.alert_system = AlertSystem()
+        self.historical_generator = HistoricalDataGenerator()
+        self.real_data_simulators = {}
+        self.solar_systems = {}
+        self.load_managers = {}
+        
+        # Initialize systems for each location
+        for location_name in LOCATIONS.keys():
+            real_data_simulator = RealDataSimulator(location_name)
+            self.real_data_simulators[location_name] = real_data_simulator
+            self.solar_systems[location_name] = SolarSystem(self.alert_system, real_data_simulator)
+            self.load_managers[location_name] = LoadManager(self.alert_system, real_data_simulator)
+        
+        # Initialize databases with historical data
+        self.initialize_databases_with_historical_data()
+
+    def initialize_databases_with_historical_data(self):
+        """Initialize all databases with historical data from October 1, 2025"""
+        print("🗃️  Initializing databases with 5-minute interval historical data from October 1, 2025...")
+        
+        for location_name, location_data in LOCATIONS.items():
+            try:
+                monitoring_db = f"solar_monitoring_{location_name.lower()}.db"
+                
+                # Always regenerate historical data to ensure 5-minute intervals
+                print(f"📊 Generating 5-minute interval data for {location_name}...")
+                
+                # Use self.historical_generator
+                historical_records = self.historical_generator.generate_historical_data_for_location(
+                    location_name, 
+                    location_data["battery_soc"],
+                    location_data["climate_factor"]
+                )
+                
+                # Create monitoring database and insert historical data
+                conn = sqlite3.connect(monitoring_db)
+                
+                # Drop existing table to ensure clean data
+                conn.execute("DROP TABLE IF EXISTS monitoring")
+                
+                # Fixed schema with Rainfall column
+                conn.execute('''
+                    CREATE TABLE monitoring (
+                        Timestamp TEXT PRIMARY KEY,
+                        Temperature REAL,
+                        Humidity REAL,
+                        Rainfall REAL,
+                        Solar_Irradiance REAL,
+                        Solar_DNI REAL,
+                        Solar_DHI REAL,
+                        Panel_Voltage REAL,
+                        Panel_Current REAL,
+                        Raw_Power REAL,
+                        Actual_Power REAL,
+                        Panel_Efficiency REAL,
+                        Battery_Voltage REAL,
+                        State_of_Charge REAL,
+                        Charge_Current REAL,
+                        Net_Power REAL,
+                        Load_Power REAL,
+                        Battery_Power REAL,
+                        Power_Direction TEXT,
+                        Efficiency_Class INTEGER,
+                        Load_Status TEXT,
+                        Load_Action TEXT,
+                        Max_Load REAL,
+                        Recommended_Action TEXT
+                    )
+                ''')
+                
+                if historical_records:
+                    # Insert in batches to avoid memory issues
+                    batch_size = 1000
+                    for i in range(0, len(historical_records), batch_size):
+                        batch = historical_records[i:i + batch_size]
+                        df = pd.DataFrame(batch)
+                        df.to_sql("monitoring", conn, if_exists="append", index=False)
+                        print(f"  ✅ Inserted batch {i//batch_size + 1}/{(len(historical_records)-1)//batch_size + 1}")
+                    
+                    # Verify data was inserted
+                    count = conn.execute("SELECT COUNT(*) FROM monitoring").fetchone()[0]
+                    print(f"✅ Added {count} historical records to {monitoring_db}")
+                    
+                    # Show date range verification
+                    first_date = conn.execute("SELECT MIN(Timestamp) FROM monitoring").fetchone()[0]
+                    last_date = conn.execute("SELECT MAX(Timestamp) FROM monitoring").fetchone()[0]
+                    print(f"   📅 Date range: {first_date} to {last_date}")
+                    
+                else:
+                    print(f"❌ No historical records generated for {location_name}")
+                
+                conn.close()
+                
+                # Initialize alerts database
+                alerts_db = f"solar_alerts_{location_name.lower()}.db"
+                conn = sqlite3.connect(alerts_db)
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS alerts (
+                        timestamp TEXT,
+                        location TEXT,
+                        type TEXT,
+                        severity TEXT,
+                        message TEXT
+                    )
+                ''')
+                conn.close()
+                print(f"✅ Alerts database initialized: {alerts_db}")
+                
+            except Exception as e:
+                print(f"❌ Error initializing database for {location_name}: {e}")
+                import traceback
+                traceback.print_exc()
 
     def monitor_location(self, location_name: str, coords: LocationData) -> Union[MonitoringData, None]:
-        """Monitor solar system at a specific location.
-        
-        Args:
-            location_name (str): Name of the location to monitor
-            coords (LocationData): Location coordinates and altitude
-            
-        Returns:
-            MonitoringData: Monitoring data or None if error occurs
-        """
+        """Monitor solar system at a specific location with real data."""
         try:
-            # Get data from all sources
+            print(f"\n--- Monitoring {location_name} ---")
+            
+            # Get data from APIs
             weather_data = self.weather_monitor.get_weather(coords.lat, coords.lon)
             nrel_data = self.weather_monitor.get_nrel_solar_data(coords.lat, coords.lon, coords.altitude)
-            pvwatts_data = self.weather_monitor.get_pvwatts_data(coords.lat, coords.lon)
             
-            if not weather_data or not nrel_data:
-                print(f"Failed to get data for {location_name}")
-                return None
+            if not weather_data:
+                print(f"❌ Failed to get weather data for {location_name}")
+                # Use fallback data
+                temp = 28.0 + np.random.normal(0, 2)  # Random temp around 28°C
+                humidity = 70.0 + np.random.normal(0, 10)
+                rainfall = 0.0
+            else:
+                # Extract weather parameters with fallbacks
+                temp = weather_data.get("main", {}).get("temp", 28.0)
+                humidity = weather_data.get("main", {}).get("humidity", 70.0)
+                rainfall = weather_data.get("rain", {}).get("1h", 0.0)
             
-            # Extract weather parameters
-            temp = weather_data.get("main", {}).get("temp", 25.0)
-            humidity = weather_data.get("main", {}).get("humidity", 50.0)
+            print(f"🌡️  Current Temperature: {temp}°C")
+            print(f"💧 Current Humidity: {humidity}%")
             
             # Calculate solar data
-            irradiance_data = self.weather_monitor.calculate_solar_irradiance(
-                weather_data, nrel_data, pvwatts_data
-            )
+            irradiance_data = self.weather_monitor.calculate_solar_irradiance(weather_data, nrel_data)
+            print(f"☀️  Solar Irradiance: {irradiance_data['irradiance']:.0f} Lux")
             
-            # Calculate solar output
-            solar_output = self.solar_system.calculate_output(
+            # Calculate real solar output with actual panel and battery data
+            real_output = self.solar_systems[location_name].calculate_real_output(
                 temp, humidity, irradiance_data, location_name
             )
             
-            if not solar_output:
-                print(f"Failed to calculate solar output for {location_name}")
-                return None
+            # Calculate real battery status
+            time_delta_hours = self.real_data_simulators[location_name].update_time()
+            battery_status = self.real_data_simulators[location_name].calculate_real_battery_voltage(
+                real_output["actual_power"], time_delta_hours
+            )
             
             # Get load recommendations
-            battery_voltage = 12.4  # This should come from real measurements
-            load_rec = self.load_manager.get_recommendation(
-                battery_voltage, solar_output["power"], location_name
+            load_rec = self.load_managers[location_name].get_recommendation(
+                battery_status["battery_voltage"],
+                battery_status["state_of_charge"],
+                real_output["actual_power"],
+                location_name
             )
             
             # Create monitoring data
-            monitoring_data = MonitoringData(
-                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                temperature=temp,
-                humidity=humidity,
-                solar_ghi=irradiance_data["ghi"],
-                solar_dni=irradiance_data["dni"],
-                solar_dhi=irradiance_data["dhi"],
-                solar_voltage=solar_output["voltage"],
-                solar_current=solar_output["current"],
-                power_output=solar_output["power"],
-                efficiency_class=solar_output["efficiency_class"],
-                battery_voltage=battery_voltage,
-                load_status=load_rec["status"],
-                load_action=load_rec["action"],
-                max_load=load_rec["max_load"]
-            )
+            monitoring_data = {
+                "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Temperature": temp,
+                "Humidity": humidity,
+                "Rainfall": rainfall,
+                "Solar_Irradiance": irradiance_data["irradiance"],
+                "Solar_DNI": irradiance_data["dni"],
+                "Solar_DHI": irradiance_data["dhi"],
+                "Panel_Voltage": real_output["panel_voltage"],
+                "Panel_Current": real_output["panel_current"],
+                "Raw_Power": real_output["raw_power"],
+                "Actual_Power": real_output["actual_power"],
+                "Panel_Efficiency": real_output["efficiency"],
+                "Battery_Voltage": battery_status["battery_voltage"],
+                "State_of_Charge": battery_status["state_of_charge"],
+                "Charge_Current": battery_status["charge_current"],
+                "Net_Power": battery_status["net_power"],
+                "Load_Power": battery_status["load_power"],
+                "Battery_Power": battery_status["battery_power"],
+                "Power_Direction": battery_status["power_direction"],
+                "Efficiency_Class": self._classify_efficiency(real_output["actual_power"]),
+                "Load_Status": load_rec["status"],
+                "Load_Action": load_rec["action"],
+                "Max_Load": load_rec["max_load"],
+                "Recommended_Action": load_rec["recommended_action"]
+            }
             
             # Store in database
             try:
                 db_name = f"solar_monitoring_{location_name.lower()}.db"
                 conn = sqlite3.connect(db_name)
-                df = pd.DataFrame([monitoring_data.to_dict()])
+                df = pd.DataFrame([monitoring_data])
                 df.to_sql("monitoring", conn, if_exists="append", index=False)
+                
+                # Verify insertion
+                count = conn.execute("SELECT COUNT(*) FROM monitoring").fetchone()[0]
+                print(f"💾 Real-time data saved to database: {db_name} (Total records: {count})")
                 conn.close()
             except Exception as e:
-                print(f"Database error for {location_name}: {e}")
+                print(f"❌ Database error for {location_name}: {e}")
             
-            return monitoring_data
+            # Save alerts
+            self.alert_system.save_alerts(location_name)
+            
+            # Display power information
+            print(f"⚡ SOLAR: {real_output['actual_power']:.1f}W "
+                  f"({real_output['panel_voltage']:.1f}V, {real_output['panel_current']:.2f}A)")
+            print(f"🔋 LiPo BATTERY: {battery_status['battery_voltage']:.1f}V, "
+                  f"SOC: {battery_status['state_of_charge']:.1f}%")
+            print(f"🔌 LOAD: {battery_status['load_power']:.1f}W")
+            print(f"🔄 POWER FLOW: {battery_status['power_direction']} "
+                  f"({battery_status['battery_power']:.1f}W)")
+            
+            # Convert to MonitoringData object for return
+            return MonitoringData(
+                timestamp=monitoring_data["Timestamp"],
+                temperature=monitoring_data["Temperature"],
+                humidity=monitoring_data["Humidity"],
+                solar_irradiance=monitoring_data["Solar_Irradiance"],
+                solar_dni=monitoring_data["Solar_DNI"],
+                solar_dhi=monitoring_data["Solar_DHI"],
+                panel_voltage=monitoring_data["Panel_Voltage"],
+                panel_current=monitoring_data["Panel_Current"],
+                raw_power=monitoring_data["Raw_Power"],
+                actual_power=monitoring_data["Actual_Power"],
+                panel_efficiency=monitoring_data["Panel_Efficiency"],
+                battery_voltage=monitoring_data["Battery_Voltage"],
+                state_of_charge=monitoring_data["State_of_Charge"],
+                charge_current=monitoring_data["Charge_Current"],
+                net_power=monitoring_data["Net_Power"],
+                load_power=monitoring_data["Load_Power"],
+                efficiency_class=monitoring_data["Efficiency_Class"],
+                load_status=monitoring_data["Load_Status"],
+                load_action=monitoring_data["Load_Action"],
+                max_load=monitoring_data["Max_Load"],
+                recommended_action=monitoring_data["Recommended_Action"]
+            )
             
         except Exception as e:
-            print(f"Error monitoring {location_name}: {e}")
+            print(f"❌ Error monitoring {location_name}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
+
+    def _classify_efficiency(self, power: float) -> int:
+        """Classify efficiency based on power output"""
+        efficiency = power / REAL_SOLAR_SPECS["max_power"]
+        if efficiency < 0.3:
+            return 0  # Low
+        elif efficiency < 0.7:
+            return 1  # Medium
+        return 2  # High
         
-        if not weather_data or not nrel_data:
-            print(f"Failed to get data for {location_name}")
-            return None
-        
-        # Extract weather parameters with error handling
-        temp = weather_data.get("main", {}).get("temp", 25.0)  # Default to 25°C if missing
-        humidity = weather_data.get("main", {}).get("humidity", 50.0)  # Default to 50% if missing
-        
-        # Calculate irradiance and solar output
-        irradiance_data = weather_monitor.calculate_solar_irradiance(weather_data, nrel_data, pvwatts_data)
-        solar_output = solar_system.calculate_output(temp, humidity, irradiance_data, location_name)
-        
-        if not solar_output:
-            print(f"Failed to calculate solar output for {location_name}")
-            return None
-        
-        # Get load recommendations (simulate battery voltage for now)
-        battery_voltage = 12.4  # This should come from real measurements
-        load_rec = load_manager.get_recommendation(
-            battery_voltage, solar_output["power"], location_name
-        )
-        
-        # Prepare monitoring data
-        data = {
-            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Temperature": round(temp, 2),
-            "Humidity": round(humidity, 2),
-            "Solar_GHI": round(irradiance_data["ghi"], 2),
-            "Solar_DNI": round(irradiance_data["dni"], 2),
-            "Solar_DHI": round(irradiance_data["dhi"], 2),
-            "Solar_Voltage": round(solar_output["voltage"], 2),
-            "Solar_Current": round(solar_output["current"], 2),
-            "Power_Output": round(solar_output["power"], 2),
-            "Efficiency_Class": solar_output["efficiency_class"],
-            "Battery_Voltage": battery_voltage,
-            "Load_Status": load_rec["status"],
-            "Load_Action": load_rec["action"],
-            "Max_Load": load_rec["max_load"]
-        }
-        
-        # Store in database
-        try:
-            db_name = f"solar_monitoring_{location_name.lower()}.db"
-            conn = sqlite3.connect(db_name)
-            df = pd.DataFrame([data])
-            df.to_sql("monitoring", conn, if_exists="append", index=False)
-            conn.close()
-        except Exception as e:
-            print(f"Database error for {location_name}: {e}")
-            # Continue execution even if database storage fails
-        
-        return data
-        
-    except Exception as e:
-        print(f"Error monitoring {location_name}: {e}")
-        return None    # Calculate comprehensive irradiance using all data sources
-    irradiance_data = weather_monitor.calculate_solar_irradiance(weather_data, nrel_data, pvwatts_data)
-    
-    # Calculate solar output with detailed irradiance data
-    solar_output = solar_system.calculate_output(temp, humidity, irradiance_data, location_name)
-    
-    # Get load recommendations (simulate battery voltage for now)
-    battery_voltage = 12.4  # This should come from real measurements
-    load_rec = load_manager.get_recommendation(
-        battery_voltage, solar_output["power"], location_name
-    )
-    
-    # Prepare data for storage
-    data = {
-        "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "Temperature": round(temp, 2),
-        "Humidity": round(humidity, 2),
-        "Solar_GHI": round(irradiance_data["ghi"], 2),
-        "Solar_DNI": round(irradiance_data["dni"], 2),
-        "Solar_DHI": round(irradiance_data["dhi"], 2),
-        "Solar_Voltage": round(solar_output["voltage"], 2),
-        "Solar_Current": round(solar_output["current"], 2),
-        "Power_Output": round(solar_output["power"], 2),
-        "Efficiency_Class": solar_output["efficiency_class"],
-        "Battery_Voltage": battery_voltage,
-        "Load_Status": load_rec["status"],
-        "Load_Action": load_rec["action"],
-        "Max_Load": load_rec["max_load"]
-    }
-    
-    # Store in database
-    db_name = f"solar_monitoring_{location_name.lower()}.db"
-    conn = sqlite3.connect(db_name)
-    df = pd.DataFrame([data])
-    df.to_sql("monitoring", conn, if_exists="append", index=False)
-    conn.close()
-    
-    return data
 
 def main():
-    """Main function to run the solar monitoring system."""
-    if not all([OPENWEATHER_API_KEY, NREL_API_KEY]):
-        print("Error: One or more API keys not set! Please set:")
-        print("- OPENWEATHER_API_KEY")
-        print("- NREL_API_KEY")
-        return
+    """Main function to run the solar monitoring system with real data."""
+    print("🚀 Initializing Solar Monitoring System with Real 100W Data...")
+    print(f"🔋 Real Solar Panel: {REAL_SOLAR_SPECS['max_power']}W Monocrystalline")
+    print(f"🔋 Real Battery: {REAL_BATTERY_SPECS['capacity']}Ah {REAL_BATTERY_SPECS['nominal_voltage']}V Lead Acid")
+    print(f"📍 Monitoring {len(LOCATIONS)} locations")
+    print(f"📅 Historical data from: October 1, 2025 to present")
     
-    # Initialize monitoring system
-    monitoring_system = MonitoringSystem()
+    # Initialize monitoring system (this will populate historical data)
+    monitoring_system = MonitoringSystem(OPENWEATHER_API_KEY, NREL_API_KEY)
     
+    print("\n🎯 Starting real-time monitoring...")
+    iteration = 0
     while True:
-        print("\n" + "="*50)
-        print(f"Solar Monitoring Update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print("="*50)
+        iteration += 1
+        print("\n" + "="*60)
+        print(f"🔆 Real Solar Monitoring Update #{iteration}: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("="*60)
         
         # Process each location
+        all_data = {}
+        
         for location_name, coords_dict in LOCATIONS.items():
-            print(f"\nMonitoring {location_name}...")
+            print(f"\n📍 Monitoring {location_name}...")
             
             # Convert dictionary to LocationData object
             coords = LocationData(
@@ -703,60 +1619,51 @@ def main():
                 altitude=coords_dict["altitude"]
             )
             
-            # Monitor location
+            # Monitor location with real data
             data = monitoring_system.monitor_location(location_name, coords)
             
             if data:
-                # Print monitoring data
-                print(f"Temperature: {data.temperature:.1f}°C")
-                print(f"Humidity: {data.humidity:.1f}%")
-                print(f"Solar Power: {data.power_output:.1f}W")
-                print(f"Efficiency: {['Low', 'Medium', 'High'][data.efficiency_class]}")
-                print(f"Load Status: {data.load_status}")
-                
-                # Print current alerts
-                alerts = monitoring_system.solar_system.alert_system.alerts
-                if alerts:
-                    print("\nCurrent Alerts:")
-                    for alert in alerts:
-                        print(f"⚠️ {alert.severity.upper()}: {alert.message}")
-                        
-                # Clear alerts for next iteration
-                monitoring_system.solar_system.alert_system.clear_alerts()
+                all_data[location_name] = data
+                # Print real monitoring data
+                print(f"  🌡️  Temperature: {data.temperature:.1f}°C")
+                print(f"  💧 Humidity: {data.humidity:.1f}%")
+                print(f"  ☀️  Solar Irradiance: {data.solar_irradiance:.0f} Lux")
+                print(f"  ⚡ Panel Voltage: {data.panel_voltage:.1f}V")
+                print(f"  🔌 Panel Current: {data.panel_current:.2f}A")
+                print(f"  💡 Actual Power: {data.actual_power:.1f}W")
+                print(f"  🔋 Battery Voltage: {data.battery_voltage:.1f}V")
+                print(f"  📊 State of Charge: {data.state_of_charge:.1f}%")
+                print(f"  🔌 Load Power: {data.load_power:.1f}W")
+                print(f"  📈 Efficiency: {['Low', 'Medium', 'High'][data.efficiency_class]}")
+                print(f"  🚦 System Status: {data.load_status}")
             
-        # Wait for next update
-        print("\nWaiting 5 minutes for next update...")
-        time.sleep(300)
+            # Print current alerts
+            alerts = monitoring_system.alert_system.alerts
+            if alerts:
+                print("  🔔 Current Alerts:")
+                for alert in alerts:
+                    print(f"    ⚠️ {alert.severity.upper()}: {alert.message}")
             
-            if data:
-                print(f"Temperature: {data['Temperature']}°C")
-                print(f"Humidity: {data['Humidity']}%")
-                print(f"Solar Power: {data['Power_Output']}W")
-                print(f"Efficiency: {['Low', 'Medium', 'High'][data['Efficiency_Class']]}")
-                print(f"Load Status: {data['Load_Status']}")
-                
-                # Save any generated alerts
-                alert_system.save_alerts(location_name)
-                
-                # Print current alerts
-                if alert_system.alerts:
-                    print("\nCurrent Alerts:")
-                    for alert in alert_system.alerts:
-                        print(f"⚠️ {alert['severity'].upper()}: {alert['message']}")
-            
-        # Wait for 5 minutes before next update
-        print("\nWaiting 5 minutes for next update...")
-        time.sleep(300)
+            # Clear alerts for next iteration
+            monitoring_system.alert_system.clear_alerts()
+        
+        # Summary
+        print(f"\n📊 Summary - {len(all_data)}/{len(LOCATIONS)} locations monitored with real data")
+        
+        # Wait for next update (5 minutes)
+        print(f"\n⏰ Next update in 5 minutes...")
+        time.sleep(300)  # 5 minutes
 
 def run_monitoring():
     """Run the solar monitoring system with error handling."""
     try:
         main()
     except KeyboardInterrupt:
-        print("\nMonitoring stopped by user")
+        print("\n🛑 Monitoring stopped by user")
     except Exception as e:
-        print(f"\nError in monitoring system: {e}")
-        raise  # Re-raise the exception for debugging
+        print(f"\n❌ Error in monitoring system: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     run_monitoring()

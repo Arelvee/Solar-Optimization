@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar Energcy Optimization Monitoring</title>
+    <title>Solar Energy Optimization Monitoring</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -20,6 +20,7 @@
             --info: #0dcaf0;
             --light: #f8f9fa;
             --dark: #212529;
+            --purple: #6f42c1;
         }
         
         body {
@@ -69,9 +70,100 @@
             border-left-color: var(--success);
         }
         
+        .sensor-card.battery {
+            border-left-color: #6f42c1;
+        }
+        
+        /* Enhanced Alert Styles */
         .alert-card {
             border-radius: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-card.critical {
+            border-left-color: var(--danger);
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+        }
+        
+        .alert-card.warning {
+            border-left-color: var(--warning);
+            background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+        }
+        
+        .alert-card.info {
+            border-left-color: var(--info);
+            background: linear-gradient(135deg, #e3fafc 0%, #c5f6fa 100%);
+        }
+        
+        .alert-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .alert-scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+        
+        .alert-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .alert-scroll-container::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 3px;
+        }
+        
+        .alert-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+        
+        .alert-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        
+        .alert-badge {
+            font-size: 0.65rem;
+            padding: 3px 6px;
+        }
+        
+        .alert-timestamp {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .alert-message {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .alert-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .alert-card:hover .alert-actions {
+            opacity: 1;
+        }
+        
+        .alert-count-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .progress-thin {
@@ -165,6 +257,117 @@
             background-color: var(--primary);
             color: white;
         }
+        
+        .alert-filter-btn {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+        
+        .alert-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-priority-indicator {
+            width: 4px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .alert-priority-high {
+            background: var(--danger);
+        }
+        
+        .alert-priority-medium {
+            background: var(--warning);
+        }
+        
+        .alert-priority-low {
+            background: var(--info);
+        }
+        
+        /* Battery specific styles */
+        .battery-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .battery-level {
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4cd964, #5ac8fa);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .battery-info {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .alert-card {
+                margin-bottom: 8px;
+                padding: 10px;
+            }
+            
+            .alert-scroll-container {
+                max-height: 300px;
+            }
+            
+            .alert-message {
+                font-size: 0.8rem;
+            }
+            
+            .alert-actions {
+                opacity: 1; /* Always show on mobile */
+            }
+            
+            .metric-value {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .alert-scroll-container {
+                max-height: 250px;
+            }
+            
+            .alert-card {
+                flex-direction: column;
+            }
+            
+            .alert-content {
+                width: 100%;
+            }
+            
+            .alert-actions {
+                width: 100%;
+                margin-top: 8px;
+                justify-content: flex-end;
+            }
+        }
+
+        .bg-purple {
+            background-color: var(--purple) !important;
+        }
+        
+        .text-purple {
+            color: var(--purple) !important;
+        }
     </style>
 </head>
 <body>
@@ -173,7 +376,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="bi bi-sun-fill me-2" style="font-size: 1.5rem;"></i>
-                <span class="fw-bold">Solar Energy Optimization Monitoring </span>
+                <span class="fw-bold">Solar Energy Optimization Monitoring</span>
             </a>
             <div class="d-flex align-items-center">
                 <span id="current-time" class="text-white me-3"></span>
@@ -197,8 +400,8 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-4 mb-3">
-                        <div class="location-selector p-3 rounded active" data-location="1">
-                            <h5>LSPU Campus</h5>
+                        <div class="location-selector p-3 rounded active" data-location="sto_tomas">
+                            <h5>Sto Tomas</h5>
                             <div class="d-flex justify-content-center align-items-center">
                                 <span class="device-status status-online"></span>
                                 <span class="text-success">Online</span>
@@ -207,8 +410,8 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="location-selector p-3 rounded" data-location="2">
-                            <h5>Sto Tomas House</h5>
+                        <div class="location-selector p-3 rounded" data-location="lspu_san_pablo">
+                            <h5>LSPU San Pablo</h5>
                             <div class="d-flex justify-content-center align-items-center">
                                 <span class="device-status status-online"></span>
                                 <span class="text-success">Online</span>
@@ -217,8 +420,8 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="location-selector p-3 rounded" data-location="3">
-                            <h5>Tanauan Area</h5>
+                        <div class="location-selector p-3 rounded" data-location="san_pablo_city">
+                            <h5>San Pablo City MyHome</h5>
                             <div class="d-flex justify-content-center align-items-center">
                                 <span class="device-status status-online"></span>
                                 <span class="text-success">Online</span>
@@ -232,6 +435,7 @@
 
         <!-- Summary Cards -->
         <div class="row mb-4">
+            <!-- System Status -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 location-1">
                     <div class="card-body">
@@ -257,22 +461,32 @@
                 </div>
             </div>
             
+            <!-- Battery Status -->
             <div class="col-md-3 mb-3">
-                <div class="card card-custom h-100 location-1">
+                <div class="card card-custom h-100 battery-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title text-muted mb-0">Efficiency</h5>
-                            <i class="bi bi-lightning-charge-fill text-warning" style="font-size: 1.2rem;"></i>
+                            <h5 class="card-title text-white mb-0">Battery Status</h5>
+                            <i class="bi bi-battery-half text-white" style="font-size: 1.2rem;"></i>
                         </div>
-                        <div class="text-center">
-                            <div id="efficiency-value" class="metric-value text-dark">--</div>
-                            <div class="text-muted mt-1">Predicted Efficiency</div>
-                            <div id="efficiency-status" class="mt-2"></div>
+                        <div class="text-center text-white">
+                            <div id="battery-voltage" class="metric-value">-- V</div>
+                            <div class="text-light mt-1">Voltage</div>
+                            <div class="battery-level">
+                                <div id="battery-fill" class="battery-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="battery-info mt-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>Current: <span id="battery-current">-- A</span></span>
+                                    <span>SoC: <span id="battery-soc">--%</span></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
+            <!-- Power Output -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 location-1">
                     <div class="card-body">
@@ -282,13 +496,17 @@
                         </div>
                         <div class="text-center">
                             <div id="power-value" class="metric-value text-dark">--</div>
-                            <div class="text-muted mt-1">Predicted Output</div>
+                            <div class="text-muted mt-1">Current Output</div>
                             <div id="power-status" class="mt-2"></div>
+                            <div class="mt-2">
+                                <small class="text-muted">Net: <span id="net-power">-- W</span></small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
+            <!-- Environment -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 location-1">
                     <div class="card-body">
@@ -307,7 +525,7 @@
                             </div>
                             <div>
                                 <div id="irradiance-value" class="fw-bold fs-5">--</div>
-                                <div class="text-muted small">Irradiance</div>
+                                <div class="text-muted small">GHI</div>
                             </div>
                         </div>
                     </div>
@@ -323,16 +541,16 @@
                     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0 d-flex align-items-center">
                             <i class="bi bi-cpu-fill text-primary me-2"></i>
-                            Real-time Sensor Data - <span id="current-location">LSPU Campus</span>
+                            Real-time Sensor Data - <span id="current-location">Sto Tomas</span>
                         </h4>
                         <div class="dropdown">
                             <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="locationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 Switch Location
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="locationDropdown">
-                                <li><a class="dropdown-item location-option" href="#" data-location="1">LSPU Campus</a></li>
-                                <li><a class="dropdown-item location-option" href="#" data-location="2">Sto Tomas</a></li>
-                                <li><a class="dropdown-item location-option" href="#" data-location="3">Tanauan</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="sto_tomas">Sto Tomas</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="lspu_san_pablo">LSPU San Pablo</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="san_pablo_city">San Pablo City MyHome</a></li>
                             </ul>
                         </div>
                     </div>
@@ -348,7 +566,7 @@
                     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0 d-flex align-items-center">
                             <i class="bi bi-graph-up text-success me-2"></i>
-                            Historical Data - <span id="chart-location">LSPU Campus</span>
+                            Historical Data - <span id="chart-location">Sto Tomas</span>
                         </h4>
                         <div class="btn-group btn-group-sm" role="group">
                             <button id="day-btn" type="button" class="btn btn-outline-primary time-btn active">24H</button>
@@ -367,26 +585,69 @@
 
             <!-- Right Column -->
             <div class="col-lg-4 mb-4">
-                <!-- Alerts Panel -->
+                <!-- Enhanced Alerts Panel -->
                 <div class="card card-custom mb-4">
-                    <div class="card-header bg-white border-0">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center position-relative">
                         <h4 class="card-title mb-0 d-flex align-items-center">
                             <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
                             System Alerts
+                            <span id="alert-count" class="alert-count-badge">0</span>
                         </h4>
-                    </div>
-                    <div class="card-body">
-                        <div id="alerts">
-                            <!-- Alerts will be inserted here -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary alert-filter-btn active" data-filter="all">All</button>
+                            <button type="button" class="btn btn-outline-danger alert-filter-btn" data-filter="critical">Critical</button>
+                            <button type="button" class="btn btn-outline-warning alert-filter-btn" data-filter="warning">Warning</button>
                         </div>
-                        <div id="no-alerts" class="text-center py-3 text-muted">
-                            <i class="bi bi-check-circle-fill text-success mb-2" style="font-size: 2rem;"></i>
-                            <p class="mb-0">No active alerts</p>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Alert Summary -->
+                        <div id="alert-summary" class="alert-summary d-none">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-danger" id="critical-count">0</div>
+                                    <small>Critical</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-warning" id="warning-count">0</div>
+                                    <small>Warning</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-info" id="info-count">0</div>
+                                    <small>Info</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Alerts Container with Scroll -->
+                        <div class="alert-scroll-container p-3">
+                            <div id="alerts">
+                                <!-- Alerts will be inserted here -->
+                            </div>
+                            <div id="no-alerts" class="text-center py-4 text-muted">
+                                <i class="bi bi-check-circle-fill text-success mb-2" style="font-size: 2rem;"></i>
+                                <p class="mb-0">No active alerts</p>
+                                <small class="text-muted">System is operating normally</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Alert Actions -->
+                        <div class="border-top p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted" id="alert-time-range">Last 24 hours</small>
+                                <div>
+                                    <button id="clear-alerts" class="btn btn-sm btn-outline-secondary me-2" disabled>
+                                        <i class="bi bi-trash"></i> Clear
+                                    </button>
+                                    <button id="refresh-alerts" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- FNN Predictions -->
+                <!-- AI Predictions -->
                 <div class="card card-custom mb-4">
                     <div class="card-header bg-white border-0">
                         <h4 class="card-title mb-0 d-flex align-items-center">
@@ -466,7 +727,7 @@
             <div class="card-header bg-white border-0">
                 <h4 class="card-title mb-0 d-flex align-items-center">
                     <i class="bi bi-table text-info me-2"></i>
-                    Historical Data Table - <span id="table-location">LSPU Campus</span>
+                    Historical Data Table - <span id="table-location">Sto Tomas</span>
                 </h4>
             </div>
             <div class="card-body">
@@ -479,10 +740,10 @@
                                 <th>Humidity (%)</th>
                                 <th>Solar Voltage (V)</th>
                                 <th>Solar Current (A)</th>
-                                <th>Solar Irradiance (Lux)</th>
                                 <th>Battery Voltage (V)</th>
                                 <th>Battery Current (A)</th>
                                 <th>Power Output (W)</th>
+                                <th>Efficiency</th>
                             </tr>
                         </thead>
                         <tbody id="historical-table-body">
@@ -501,7 +762,7 @@
                 <div class="col-md-6 mb-3 mb-md-0">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-sun-fill text-warning me-2" style="font-size: 1.5rem;"></i>
-                        <span class="fs-5 fw-bold">Solar Energcy Optimization Monitoring</span>
+                        <span class="fs-5 fw-bold">Solar Energy Optimization Monitoring</span>
                     </div>
                     <p class="text-light mb-0 mt-1">Advanced AI-powered solar energy analytics across multiple locations</p>
                 </div>
@@ -520,6 +781,14 @@
         const sensorCards = document.getElementById('sensor-cards');
         const alertsDiv = document.getElementById('alerts');
         const noAlertsDiv = document.getElementById('no-alerts');
+        const alertCount = document.getElementById('alert-count');
+        const alertSummary = document.getElementById('alert-summary');
+        const criticalCount = document.getElementById('critical-count');
+        const warningCount = document.getElementById('warning-count');
+        const infoCount = document.getElementById('info-count');
+        const clearAlertsBtn = document.getElementById('clear-alerts');
+        const refreshAlertsBtn = document.getElementById('refresh-alerts');
+        const alertTimeRange = document.getElementById('alert-time-range');
         const fnnEfficiency = document.getElementById('fnn-efficiency');
         const fnnPower = document.getElementById('fnn-power');
         const efficiencyBar = document.getElementById('efficiency-bar');
@@ -539,16 +808,27 @@
         const chartLocationSpan = document.getElementById('chart-location');
         const tableLocationSpan = document.getElementById('table-location');
         
+        // Battery elements
+        const batteryVoltage = document.getElementById('battery-voltage');
+        const batteryCurrent = document.getElementById('battery-current');
+        const batterySoc = document.getElementById('battery-soc');
+        const batteryFill = document.getElementById('battery-fill');
+        const netPower = document.getElementById('net-power');
+        
         let chart;
         let comparisonChart;
         let updateInterval;
         let currentTimeRange = 'day';
-        let currentLocation = 1; // Default to LSPU Campus
+        let currentLocation = 'sto_tomas'; // Default to Sto Tomas
         const locationNames = {
-            1: 'LSPU Campus',
-            2: 'Sto Tomas', 
-            3: 'Tanauan'
+            'sto_tomas': 'Sto Tomas',
+            'lspu_san_pablo': 'LSPU San Pablo', 
+            'san_pablo_city': 'San Pablo City MyHome'
         };
+
+        // Enhanced alert management
+        let currentAlertFilter = 'all';
+        let allAlerts = [];
 
         // Initialize the dashboard
         function initDashboard() {
@@ -566,13 +846,16 @@
             // Set up location selectors
             setupLocationSelectors();
             
+            // Initialize enhanced alerts
+            initEnhancedAlerts();
+            
             // Initial data fetch
             updateDashboard();
             fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
             updateComparisonChart();
             
             // Set up auto-refresh
-            updateInterval = setInterval(updateDashboard, 10000);
+            updateInterval = setInterval(updateDashboard, 30000); // 30 seconds
             
             // Set up time range buttons
             document.getElementById('day-btn').addEventListener('click', () => setTimeRange('day'));
@@ -601,9 +884,193 @@
             });
         }
 
+        // Enhanced alert system initialization
+        function initEnhancedAlerts() {
+            setupAlertFilters();
+        }
+
+        // Setup alert filtering
+        function setupAlertFilters() {
+            document.querySelectorAll('.alert-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Update active filter button
+                    document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    currentAlertFilter = filter;
+                    filterAlerts();
+                });
+            });
+            
+            // Clear alerts button
+            clearAlertsBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear all alerts?')) {
+                    clearAllAlerts();
+                }
+            });
+            
+            // Refresh alerts button
+            refreshAlertsBtn.addEventListener('click', function() {
+                fetchAlerts(currentLocation).then(alerts => {
+                    allAlerts = alerts;
+                    updateAlertsDisplay();
+                });
+            });
+        }
+
+        // Filter alerts based on current filter
+        function filterAlerts() {
+            let filteredAlerts = allAlerts;
+            
+            if (currentAlertFilter === 'critical') {
+                filteredAlerts = allAlerts.filter(alert => alert.severity === 'critical');
+            } else if (currentAlertFilter === 'warning') {
+                filteredAlerts = allAlerts.filter(alert => alert.severity === 'warning');
+            }
+            
+            displayAlerts(filteredAlerts);
+        }
+
+        // Update alerts display with enhanced styling
+        function displayAlerts(alerts) {
+            alertsDiv.innerHTML = '';
+            
+            if (alerts.length === 0) {
+                noAlertsDiv.style.display = 'block';
+                clearAlertsBtn.disabled = true;
+                return;
+            }
+            
+            noAlertsDiv.style.display = 'none';
+            clearAlertsBtn.disabled = false;
+            
+            alerts.forEach(alert => {
+                const alertClass = getAlertClass(alert.severity);
+                const priorityClass = getPriorityClass(alert.severity);
+                const icon = getAlertIcon(alert.severity);
+                
+                const alertElement = document.createElement('div');
+                alertElement.className = `alert-card ${alertClass} d-flex align-items-start position-relative`;
+                alertElement.innerHTML = `
+                    <div class="alert-priority-indicator ${priorityClass}"></div>
+                    <div class="alert-content flex-grow-1 me-2">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="alert-heading mb-0 d-flex align-items-center">
+                                <i class="bi ${icon} me-2"></i>
+                                ${alert.type.toUpperCase()} Alert
+                            </h6>
+                            <span class="badge ${getBadgeClass(alert.severity)} alert-badge">${alert.severity}</span>
+                        </div>
+                        <p class="alert-message mb-1">${alert.message}</p>
+                        <small class="alert-timestamp">${new Date(alert.timestamp).toLocaleString()}</small>
+                    </div>
+                    <div class="alert-actions d-flex flex-column">
+                        <button class="btn btn-sm btn-outline-secondary mb-1" onclick="dismissAlert('${alert.timestamp}')" title="Dismiss">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewAlertDetails('${alert.timestamp}')" title="Details">
+                            <i class="bi bi-info"></i>
+                        </button>
+                    </div>
+                `;
+                
+                alertsDiv.appendChild(alertElement);
+            });
+        }
+
+        // Update alerts summary and counts
+        function updateAlertsSummary(alerts) {
+            const critical = alerts.filter(a => a.severity === 'critical').length;
+            const warning = alerts.filter(a => a.severity === 'warning').length;
+            const info = alerts.filter(a => a.severity === 'info').length;
+            
+            criticalCount.textContent = critical;
+            warningCount.textContent = warning;
+            infoCount.textContent = info;
+            
+            alertCount.textContent = alerts.length;
+            
+            // Show summary if there are alerts
+            if (alerts.length > 0) {
+                alertSummary.classList.remove('d-none');
+            } else {
+                alertSummary.classList.add('d-none');
+            }
+        }
+
+        // Helper functions for alert styling
+        function getAlertClass(severity) {
+            switch(severity) {
+                case 'critical': return 'critical';
+                case 'warning': return 'warning';
+                case 'info': return 'info';
+                default: return 'warning';
+            }
+        }
+
+        function getPriorityClass(severity) {
+            switch(severity) {
+                case 'critical': return 'alert-priority-high';
+                case 'warning': return 'alert-priority-medium';
+                case 'info': return 'alert-priority-low';
+                default: return 'alert-priority-medium';
+            }
+        }
+
+        function getAlertIcon(severity) {
+            switch(severity) {
+                case 'critical': return 'bi-exclamation-octagon-fill text-danger';
+                case 'warning': return 'bi-exclamation-triangle-fill text-warning';
+                case 'info': return 'bi-info-circle-fill text-info';
+                default: return 'bi-exclamation-triangle-fill text-warning';
+            }
+        }
+
+        function getBadgeClass(severity) {
+            switch(severity) {
+                case 'critical': return 'bg-danger';
+                case 'warning': return 'bg-warning';
+                case 'info': return 'bg-info';
+                default: return 'bg-warning';
+            }
+        }
+
+        // Alert action functions
+        function dismissAlert(timestamp) {
+            // In a real application, you would send this to the backend
+            allAlerts = allAlerts.filter(alert => alert.timestamp !== timestamp);
+            updateAlertsDisplay();
+        }
+
+        function viewAlertDetails(timestamp) {
+            const alert = allAlerts.find(a => a.timestamp === timestamp);
+            if (alert) {
+                alert(`Alert Details:\n\nType: ${alert.type}\nSeverity: ${alert.severity}\nMessage: ${alert.message}\nTime: ${new Date(alert.timestamp).toLocaleString()}`);
+            }
+        }
+
+        function clearAllAlerts() {
+            allAlerts = [];
+            updateAlertsDisplay();
+        }
+
+        // Enhanced updateAlerts function
+        async function updateAlerts() {
+            const alertsData = await fetchAlerts(currentLocation);
+            allAlerts = alertsData;
+            updateAlertsDisplay();
+        }
+
+        function updateAlertsDisplay() {
+            updateAlertsSummary(allAlerts);
+            filterAlerts();
+        }
+
         // Switch between locations
         function switchLocation(locationId) {
-            currentLocation = parseInt(locationId);
+            currentLocation = locationId;
             
             // Update active location selectors
             document.querySelectorAll('.location-selector').forEach(selector => {
@@ -622,7 +1089,10 @@
             // Update card borders
             document.querySelectorAll('.location-1, .location-2, .location-3').forEach(card => {
                 card.classList.remove('location-1', 'location-2', 'location-3');
-                card.classList.add(`location-${locationId}`);
+                // Simple mapping for visual consistency
+                if (locationId === 'sto_tomas') card.classList.add('location-1');
+                else if (locationId === 'lspu_san_pablo') card.classList.add('location-2');
+                else card.classList.add('location-3');
             });
             
             // Refresh data for the new location
@@ -696,100 +1166,69 @@
             fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
         }
 
-        // Generate mock historical data for demonstration
-        function generateMockHistoricalData(start, end, locationId) {
-            const data = [];
-            const startTime = new Date(start).getTime();
-            const endTime = new Date(end).getTime();
-            const interval = (endTime - startTime) / 100; // Create 100 data points
-            
-            // Different base values for different locations to simulate different conditions
-            const locationFactors = {
-                1: { // LSPU Campus- urban, moderate climate
-                    tempBase: 28,
-                    humidityBase: 70,
-                    solarBase: 0.9
-                },
-                2: { // Sto Tomas- coastal, sunny
-                    tempBase: 30,
-                    humidityBase: 75,
-                    solarBase: 1.1
-                },
-                3: { // Tanauan - southern, hot
-                    tempBase: 32,
-                    humidityBase: 80,
-                    solarBase: 1.0
-                }
-            };
-            
-            const factors = locationFactors[locationId];
-            
-            for (let i = 0; i <= 100; i++) {
-                const timestamp = new Date(startTime + i * interval);
-                // Generate realistic solar data with some variation
-                const hour = timestamp.getHours();
-                const isDaytime = hour >= 6 && hour <= 18;
-                const dayOfWeek = timestamp.getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                
-                // Base values that vary by time of day and season
-                const tempBase = isDaytime ? factors.tempBase : factors.tempBase - 5;
-                const humidityBase = isDaytime ? factors.humidityBase : factors.humidityBase + 10;
-                const solarVoltageBase = isDaytime ? 24 * factors.solarBase : 0.5;
-                const solarCurrentBase = isDaytime ? 5 * factors.solarBase : 0.1;
-                const irradianceBase = isDaytime ? 800 * factors.solarBase : 10;
-                const batteryVoltageBase = isDaytime ? 12.5 : 11.8;
-                const batteryCurrentBase = isDaytime ? -2 : 1; // Negative during charging
-                const powerOutputBase = isDaytime ? 120 * factors.solarBase : 10;
-                
-                // Add some random variation
-                const randomFactor = 0.8 + Math.random() * 0.4;
-                
-                data.push({
-                    Timestamp: timestamp.toISOString(),
-                    'Temperature (°C)': (tempBase * randomFactor).toFixed(1),
-                    'Humidity (%)': (humidityBase * randomFactor).toFixed(1),
-                    'Solar Voltage (V)': (solarVoltageBase * randomFactor).toFixed(2),
-                    'Solar Current (A)': (solarCurrentBase * randomFactor).toFixed(2),
-                    'Solar Irradiance (Lux)': (irradianceBase * randomFactor).toFixed(0),
-                    'Battery Voltage (V)': (batteryVoltageBase * randomFactor).toFixed(2),
-                    'Battery Current (A)': (batteryCurrentBase * randomFactor).toFixed(2),
-                    'Power Output (W)': (powerOutputBase * randomFactor).toFixed(1),
-                    'Time of Day (hour,0–23)': hour,
-                    'Day Type (0=Cloudy,1=Sunny)': isWeekend ? 1 : 0
-                });
+        // Fetch real-time data from backend
+        async function fetchCurrentData(location) {
+            try {
+                const response = await fetch(`/api/current/${location}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching current data:', error);
+                return null;
             }
-            
-            return data;
+        }
+
+        // Fetch historical data from backend
+        async function fetchHistoricalData(start, end) {
+            try {
+                const response = await fetch(`/api/historical/${currentLocation}?start=${start}&end=${end}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                updateHistoricalChart(data);
+                updateHistoricalTable(data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching historical data:', error);
+                return [];
+            }
+        }
+
+        // Fetch alerts from backend
+        async function fetchAlerts(location) {
+            try {
+                const response = await fetch(`/api/alerts/${location}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching alerts:', error);
+                return [];
+            }
         }
 
         // UPDATE DASHBOARD
         async function updateDashboard() {
             try {
-                // For demo purposes, we'll use mock data
-                // In a real application, you would fetch from your API with location parameter
-                const mockData = generateMockHistoricalData(
-                    new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), 
-                    new Date().toISOString(),
-                    currentLocation
-                );
-                
-                const latest = mockData[mockData.length - 1];
-                if (!latest) return;
+                // Fetch current data from backend
+                const currentData = await fetchCurrentData(currentLocation);
+                if (!currentData) {
+                    throw new Error('No data received');
+                }
 
                 // Update last updated time
                 lastUpdated.textContent = 'Just now';
-                dataPoints.textContent = mockData.length;
 
-                // SENSOR CARDS
+                // SENSOR CARDS - Updated to include battery information
                 sensorCards.innerHTML = '';
                 const sensors = [
-                    {name:'Temperature', value:latest['Temperature (°C)'], unit:'°C', icon:'bi-thermometer-half', color:'temperature', class:'danger'},
-                    {name:'Humidity', value:latest['Humidity (%)'], unit:'%', icon:'bi-droplet-half', color:'humidity', class:'info'},
-                    {name:'Solar Voltage', value:latest['Solar Voltage (V)'], unit:'V', icon:'bi-lightning', color:'voltage', class:'warning'},
-                    {name:'Solar Current', value:latest['Solar Current (A)'], unit:'A', icon:'bi-lightning-charge', color:'current', class:'warning'},
-                    {name:'Solar Irradiance', value:latest['Solar Irradiance (Lux)'], unit:'Lux', icon:'bi-brightness-high', color:'voltage', class:'warning'},
-                    {name:'Power Output', value:latest['Power Output (W)'], unit:'W', icon:'bi-graph-up', color:'power', class:'success'}
+                    {name:'Temperature', value:currentData.Temperature, unit:'°C', icon:'bi-thermometer-half', color:'temperature', class:'danger'},
+                    {name:'Humidity', value:currentData.Humidity, unit:'%', icon:'bi-droplet-half', color:'humidity', class:'info'},
+                    {name:'Solar Voltage', value:currentData.Panel_Voltage, unit:'V', icon:'bi-lightning', color:'voltage', class:'warning'},
+                    {name:'Solar Current', value:currentData.Panel_Current, unit:'A', icon:'bi-lightning-charge', color:'current', class:'warning'},
+                    {name:'Solar GHI', value:currentData.Solar_Irradiance, unit:'W/m²', icon:'bi-brightness-high', color:'voltage', class:'warning'},
+                    {name:'Power Output', value:currentData.Actual_Power, unit:'W', icon:'bi-graph-up', color:'power', class:'success'},
+                    {name:'Battery Voltage', value:currentData.Battery_Voltage, unit:'V', icon:'bi-battery-half', color:'battery', class:'purple'},
+                    {name:'Battery Current', value:currentData.Charge_Current, unit:'A', icon:'bi-lightning-charge', color:'battery', class:'purple'},
+                    {name:'Load Power', value:currentData.Load_Power, unit:'W', icon:'bi-plug', color:'current', class:'warning'}
                 ];
                 
                 sensors.forEach(s => {
@@ -810,296 +1249,192 @@
                 });
 
                 // Update environmental values
-                temperatureValue.textContent = latest['Temperature (°C)'] + '°C';
-                humidityValue.textContent = latest['Humidity (%)'] + '%';
-                irradianceValue.textContent = latest['Solar Irradiance (Lux)'] + ' Lux';
+                temperatureValue.textContent = currentData.Temperature + '°C';
+                humidityValue.textContent = currentData.Humidity + '%';
+                irradianceValue.textContent = currentData.Solar_Irradiance + ' W/m²';
 
-                // FNN PREDICTIONS (mock for demo)
-                const fnn = {
-                    efficiency: 0.85 + Math.random() * 0.1,
-                    power: 100 + Math.random() * 50
-                };
-
-                // Update prediction displays
-                fnnEfficiency.textContent = fnn.efficiency ? fnn.efficiency.toFixed(3) : '--';
-                fnnPower.textContent = fnn.power ? fnn.power.toFixed(2) + ' W' : '-- W';
+                // Update battery information
+                batteryVoltage.textContent = currentData.Battery_Voltage + ' V';
+                batteryCurrent.textContent = currentData.Charge_Current + ' A';
+                batterySoc.textContent = currentData.State_of_Charge + '%';
                 
-                efficiencyValue.textContent = fnn.efficiency ? fnn.efficiency.toFixed(3) : '--';
-                powerValue.textContent = fnn.power ? fnn.power.toFixed(2) + ' W' : '-- W';
+                // Update battery fill level based on State of Charge
+                const soc = parseFloat(currentData.State_of_Charge) || 0;
+                batteryFill.style.width = soc + '%';
                 
-                // Update efficiency bar (assuming efficiency is between 0 and 1)
-                if (fnn.efficiency) {
-                    efficiencyBar.style.width = `${fnn.efficiency * 100}%`;
-                    
-                    if(fnn.efficiency < 0.85) {
-                        efficiencyStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
-                    } else {
-                        efficiencyStatus.innerHTML = '<span class="badge bg-success status-badge">Normal</span>';
-                    }
-                }
-                
-                // Update power bar (assuming max power is 200W for visualization)
-                if (fnn.power) {
-                    const powerPercent = Math.min((fnn.power / 200) * 100, 100);
-                    powerBar.style.width = `${powerPercent}%`;
-                    
-                    if(fnn.power < 50) {
-                        powerStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
-                    } else {
-                        powerStatus.innerHTML = '<span class="badge bg-success status-badge">Normal</span>';
-                    }
+                // Change battery color based on charge level
+                if (soc > 70) {
+                    batteryFill.style.background = 'linear-gradient(90deg, #4cd964, #5ac8fa)';
+                } else if (soc > 30) {
+                    batteryFill.style.background = 'linear-gradient(90deg, #ffcc00, #ff9500)';
+                } else {
+                    batteryFill.style.background = 'linear-gradient(90deg, #ff3b30, #ff9500)';
                 }
 
-                // ALERTS
-                alertsDiv.innerHTML = '';
-                let hasAlerts = false;
+                // Update power displays
+                powerValue.textContent = currentData.Actual_Power + ' W';
+                netPower.textContent = currentData.Net_Power + ' W';
                 
-                if(fnn.efficiency && fnn.efficiency < 0.85) {
-                    alertsDiv.innerHTML += `
-                        <div class="alert alert-danger alert-card d-flex align-items-start pulse">
-                            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
-                            <div>
-                                <h6 class="alert-heading mb-1">Low Efficiency</h6>
-                                <p class="mb-0 small">Current efficiency is ${fnn.efficiency.toFixed(3)}. Consider maintenance.</p>
-                            </div>
-                        </div>`;
-                    hasAlerts = true;
+                // Update efficiency displays
+                efficiencyValue.textContent = currentData.Efficiency_Class === 2 ? 'High' : 
+                                            currentData.Efficiency_Class === 1 ? 'Medium' : 'Low';
+                
+                // Update efficiency status
+                if(currentData.Efficiency_Class === 0) {
+                    efficiencyStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
+                } else if(currentData.Efficiency_Class === 1) {
+                    efficiencyStatus.innerHTML = '<span class="badge bg-warning status-badge">Medium</span>';
+                } else {
+                    efficiencyStatus.innerHTML = '<span class="badge bg-success status-badge">High</span>';
                 }
                 
-                if(fnn.power && fnn.power < 50) {
-                    alertsDiv.innerHTML += `
-                        <div class="alert alert-danger alert-card d-flex align-items-start pulse">
-                            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
-                            <div>
-                                <h6 class="alert-heading mb-1">Low Power Output</h6>
-                                <p class="mb-0 small">Current output is ${fnn.power.toFixed(2)}W. Check system components.</p>
-                            </div>
-                        </div>`;
-                    hasAlerts = true;
+                // Update power status
+                if(currentData.Actual_Power < 50) {
+                    powerStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
+                } else if(currentData.Actual_Power < 80) {
+                    powerStatus.innerHTML = '<span class="badge bg-warning status-badge">Medium</span>';
+                } else {
+                    powerStatus.innerHTML = '<span class="badge bg-success status-badge">High</span>';
                 }
+
+                // AI PREDICTIONS (using current data for demo)
+                fnnEfficiency.textContent = currentData.Efficiency_Class === 2 ? 'High' : 
+                                          currentData.Efficiency_Class === 1 ? 'Medium' : 'Low';
+                fnnPower.textContent = currentData.Actual_Power + ' W';
                 
-                // Show/hide no alerts message
-                noAlertsDiv.style.display = hasAlerts ? 'none' : 'block';
+                // Update efficiency bar
+                efficiencyBar.style.width = `${(currentData.Efficiency_Class / 2) * 100}%`;
+                
+                // Update power bar (assuming max power is 120W for visualization)
+                const powerPercent = Math.min((currentData.Actual_Power / 120) * 100, 100);
+                powerBar.style.width = `${powerPercent}%`;
+
+                // Update alerts using the enhanced system
+                await updateAlerts();
                 
             } catch(err) {
                 console.error('Dashboard update error:', err);
                 // Show error alert
-                alertsDiv.innerHTML = `
-                    <div class="alert alert-warning alert-card d-flex align-items-start">
-                        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
-                        <div>
-                            <h6 class="alert-heading mb-1">Connection Issue</h6>
-                            <p class="mb-0 small">Unable to fetch latest data. Check your connection.</p>
-                        </div>
-                    </div>`;
-                noAlertsDiv.style.display = 'none';
+                const errorAlert = {
+                    timestamp: new Date().toISOString(),
+                    type: 'connection',
+                    severity: 'warning',
+                    message: 'Unable to fetch latest data. Check your connection.'
+                };
+                allAlerts = [errorAlert];
+                updateAlertsDisplay();
             }
         }
 
-        // HISTORICAL DATA CHART
-        async function fetchHistoricalData(start, end) {
-            try {
-                // For demo purposes, we'll use mock data
-                // In a real application, you would fetch from your API: /sensor-data?start=${start}&end=${end}&location=${currentLocation}
-                const data = generateMockHistoricalData(start, end, currentLocation);
+        // HISTORICAL DATA CHART - Updated to include battery voltage
+        function updateHistoricalChart(data) {
+            if (!data || data.length === 0) return;
 
-                // Update historical data table
-                updateHistoricalTable(data);
-
-                // Prepare data for chart based on time range
-                let labels, tempData, humData, powerData;
-                
-                if (currentTimeRange === 'day') {
-                    // For day view, show data by hour
-                    labels = data.map(d => {
-                        const date = new Date(d.Timestamp);
-                        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    });
-                } else if (currentTimeRange === 'week') {
-                    // For week view, show data by day
-                    const aggregated = aggregateDataByDay(data);
-                    labels = aggregated.map(d => {
-                        const date = new Date(d.Timestamp);
-                        return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
-                    });
-                    tempData = aggregated.map(d => d['Temperature (°C)']);
-                    humData = aggregated.map(d => d['Humidity (%)']);
-                    powerData = aggregated.map(d => d['Power Output (W)']);
-                } else if (currentTimeRange === 'month') {
-                    // For month view, show data by week
-                    const aggregated = aggregateDataByWeek(data);
-                    labels = aggregated.map(d => d.weekLabel);
-                    tempData = aggregated.map(d => d.avgTemp);
-                    humData = aggregated.map(d => d.avgHumidity);
-                    powerData = aggregated.map(d => d.avgPower);
-                } else {
-                    // For year view, show data by month
-                    const aggregated = aggregateDataByMonth(data);
-                    labels = aggregated.map(d => d.monthLabel);
-                    tempData = aggregated.map(d => d.avgTemp);
-                    humData = aggregated.map(d => d.avgHumidity);
-                    powerData = aggregated.map(d => d.avgPower);
-                }
-
-                // If we haven't set the data yet (for day view), use the original data
-                if (!tempData) {
-                    tempData = data.map(d => d['Temperature (°C)']);
-                    humData = data.map(d => d['Humidity (%)']);
-                    powerData = data.map(d => d['Power Output (W)']);
-                }
-
-                if(chart) chart.destroy();
-                const ctx = document.getElementById('sensorChart').getContext('2d');
-                chart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Temperature (°C)',
-                                data: tempData,
-                                borderColor: 'rgb(220, 53, 69)',
-                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                yAxisID: 'y'
-                            },
-                            {
-                                label: 'Humidity (%)',
-                                data: humData,
-                                borderColor: 'rgb(13, 202, 240)',
-                                backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                yAxisID: 'y1'
-                            },
-                            {
-                                label: 'Power Output (W)',
-                                data: powerData,
-                                borderColor: 'rgb(25, 135, 84)',
-                                backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                yAxisID: 'y'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: {
-                                    display: true,
-                                    text: 'Temperature (°C) / Power (W)'
-                                }
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: 'Humidity (%)'
-                                },
-                                grid: {
-                                    drawOnChartArea: false,
-                                },
-                            }
-                        }
-                    }
+            // Prepare data for chart based on time range
+            let labels, tempData, humData, powerData, batteryVoltageData;
+            
+            if (currentTimeRange === 'day') {
+                // For day view, show data by hour
+                labels = data.map(d => {
+                    const date = new Date(d.Timestamp);
+                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 });
-            } catch(err) {
-                console.error('Historical data fetch error:', err);
+            } else if (currentTimeRange === 'week') {
+                // For week view, show data by day
+                const aggregated = aggregateDataByDay(data);
+                labels = aggregated.map(d => {
+                    const date = new Date(d.Timestamp);
+                    return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+                });
+                tempData = aggregated.map(d => d.Temperature);
+                humData = aggregated.map(d => d.Humidity);
+                powerData = aggregated.map(d => d.Actual_Power);
+                batteryVoltageData = aggregated.map(d => d.Battery_Voltage);
+            } else if (currentTimeRange === 'month') {
+                // For month view, show data by week
+                const aggregated = aggregateDataByWeek(data);
+                labels = aggregated.map(d => d.weekLabel);
+                tempData = aggregated.map(d => d.avgTemp);
+                humData = aggregated.map(d => d.avgHumidity);
+                powerData = aggregated.map(d => d.avgPower);
+                batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
+            } else {
+                // For year view, show data by month
+                const aggregated = aggregateDataByMonth(data);
+                labels = aggregated.map(d => d.monthLabel);
+                tempData = aggregated.map(d => d.avgTemp);
+                humData = aggregated.map(d => d.avgHumidity);
+                powerData = aggregated.map(d => d.avgPower);
+                batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
             }
-        }
 
-        // Update comparison chart with data from all locations
-        function updateComparisonChart() {
-            // Generate mock data for all three locations
-            const end = new Date();
-            const start = new Date();
-            start.setDate(start.getDate() - 7); // Last week
-            
-            const location1Data = generateMockHistoricalData(start, end, 1);
-            const location2Data = generateMockHistoricalData(start, end, 2);
-            const location3Data = generateMockHistoricalData(start, end, 3);
-            
-            // Aggregate data by day for comparison
-            const location1Aggregated = aggregateDataByDay(location1Data);
-            const location2Aggregated = aggregateDataByDay(location2Data);
-            const location3Aggregated = aggregateDataByDay(location3Data);
-            
-            const labels = location1Aggregated.map(d => {
-                const date = new Date(d.Timestamp);
-                return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
-            });
-            
-            const location1Power = location1Aggregated.map(d => d['Power Output (W)']);
-            const location2Power = location2Aggregated.map(d => d['Power Output (W)']);
-            const location3Power = location3Aggregated.map(d => d['Power Output (W)']);
-            
-            if(comparisonChart) comparisonChart.destroy();
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            comparisonChart = new Chart(ctx, {
-                type: 'bar',
+            // If we haven't set the data yet (for day view), use the original data
+            if (!tempData) {
+                tempData = data.map(d => d.Temperature);
+                humData = data.map(d => d.Humidity);
+                powerData = data.map(d => d.Actual_Power);
+                batteryVoltageData = data.map(d => d.Battery_Voltage);
+            }
+
+            if(chart) chart.destroy();
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
                         {
-                            label: 'LSPU Campus',
-                            data: location1Power,
-                            backgroundColor: 'rgba(30, 60, 114, 0.7)',
-                            borderColor: 'rgb(30, 60, 114)',
-                            borderWidth: 1
+                            label: 'Temperature (°C)',
+                            data: tempData,
+                            borderColor: 'rgb(220, 53, 69)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
                         },
                         {
-                            label: 'Sto Tomas',
-                            data: location2Power,
-                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            label: 'Humidity (%)',
+                            data: humData,
+                            borderColor: 'rgb(13, 202, 240)',
+                            backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Power Output (W)',
+                            data: powerData,
                             borderColor: 'rgb(25, 135, 84)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
                         },
                         {
-                            label: 'Tanauan',
-                            data: location3Power,
-                            backgroundColor: 'rgba(253, 126, 20, 0.7)',
-                            borderColor: 'rgb(253, 126, 20)',
-                            borderWidth: 1
+                            label: 'Battery Voltage (V)',
+                            data: batteryVoltageData,
+                            borderColor: 'rgb(111, 66, 193)',
+                            backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y2'
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
                         },
-                        title: {
-                            display: true,
-                            text: 'Power Output Comparison (Last 7 Days)'
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
                         }
                     },
                     scales: {
@@ -1109,18 +1444,136 @@
                             }
                         },
                         y: {
-                            beginAtZero: true,
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
                             title: {
                                 display: true,
-                                text: 'Power Output (W)'
+                                text: 'Temperature (°C) / Power (W)'
                             }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Humidity (%)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Battery Voltage (V)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            offset: true
                         }
                     }
                 }
             });
         }
 
-        // Aggregate data by day for week view
+        // Update comparison chart with data from all locations
+        async function updateComparisonChart() {
+            try {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(start.getDate() - 7); // Last week
+                
+                // Fetch data for all locations
+                const [location1Data, location2Data, location3Data] = await Promise.all([
+                    fetch(`/api/historical/sto_tomas?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
+                    fetch(`/api/historical/lspu_san_pablo?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
+                    fetch(`/api/historical/san_pablo_city?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json())
+                ]);
+
+                // Aggregate data by day for comparison
+                const location1Aggregated = aggregateDataByDay(location1Data);
+                const location2Aggregated = aggregateDataByDay(location2Data);
+                const location3Aggregated = aggregateDataByDay(location3Data);
+                
+                const labels = location1Aggregated.map(d => {
+                    const date = new Date(d.Timestamp);
+                    return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+                });
+                
+                const location1Power = location1Aggregated.map(d => d.Actual_Power);
+                const location2Power = location2Aggregated.map(d => d.Actual_Power);
+                const location3Power = location3Aggregated.map(d => d.Actual_Power);
+                
+                if(comparisonChart) comparisonChart.destroy();
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Sto Tomas',
+                                data: location1Power,
+                                backgroundColor: 'rgba(30, 60, 114, 0.7)',
+                                borderColor: 'rgb(30, 60, 114)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'LSPU San Pablo',
+                                data: location2Power,
+                                backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                                borderColor: 'rgb(25, 135, 84)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'San Pablo City MyHome',
+                                data: location3Power,
+                                backgroundColor: 'rgba(253, 126, 20, 0.7)',
+                                borderColor: 'rgb(253, 126, 20)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Power Output Comparison (Last 7 Days)'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Power Output (W)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating comparison chart:', error);
+            }
+        }
+
+        // Aggregate data by day for week view - Updated for battery data
         function aggregateDataByDay(data) {
             const aggregated = {};
             
@@ -1131,30 +1584,33 @@
                 if (!aggregated[dateKey]) {
                     aggregated[dateKey] = {
                         Timestamp: record.Timestamp,
-                        'Temperature (°C)': 0,
-                        'Humidity (%)': 0,
-                        'Power Output (W)': 0,
+                        Temperature: 0,
+                        Humidity: 0,
+                        Actual_Power: 0,
+                        Battery_Voltage: 0,
                         count: 0
                     };
                 }
                 
-                aggregated[dateKey]['Temperature (°C)'] += parseFloat(record['Temperature (°C)']);
-                aggregated[dateKey]['Humidity (%)'] += parseFloat(record['Humidity (%)']);
-                aggregated[dateKey]['Power Output (W)'] += parseFloat(record['Power Output (W)']);
+                aggregated[dateKey].Temperature += parseFloat(record.Temperature);
+                aggregated[dateKey].Humidity += parseFloat(record.Humidity);
+                aggregated[dateKey].Actual_Power += parseFloat(record.Actual_Power);
+                aggregated[dateKey].Battery_Voltage += parseFloat(record.Battery_Voltage);
                 aggregated[dateKey].count++;
             });
             
             // Calculate averages
             Object.keys(aggregated).forEach(key => {
-                aggregated[key]['Temperature (°C)'] = (aggregated[key]['Temperature (°C)'] / aggregated[key].count).toFixed(1);
-                aggregated[key]['Humidity (%)'] = (aggregated[key]['Humidity (%)'] / aggregated[key].count).toFixed(1);
-                aggregated[key]['Power Output (W)'] = (aggregated[key]['Power Output (W)'] / aggregated[key].count).toFixed(1);
+                aggregated[key].Temperature = (aggregated[key].Temperature / aggregated[key].count).toFixed(1);
+                aggregated[key].Humidity = (aggregated[key].Humidity / aggregated[key].count).toFixed(1);
+                aggregated[key].Actual_Power = (aggregated[key].Actual_Power / aggregated[key].count).toFixed(1);
+                aggregated[key].Battery_Voltage = (aggregated[key].Battery_Voltage / aggregated[key].count).toFixed(1);
             });
             
             return Object.values(aggregated);
         }
 
-        // Aggregate data by week for month view
+        // Aggregate data by week for month view - Updated for battery data
         function aggregateDataByWeek(data) {
             const aggregated = {};
             
@@ -1170,13 +1626,15 @@
                         avgTemp: 0,
                         avgHumidity: 0,
                         avgPower: 0,
+                        avgBatteryVoltage: 0,
                         count: 0
                     };
                 }
                 
-                aggregated[weekKey].avgTemp += parseFloat(record['Temperature (°C)']);
-                aggregated[weekKey].avgHumidity += parseFloat(record['Humidity (%)']);
-                aggregated[weekKey].avgPower += parseFloat(record['Power Output (W)']);
+                aggregated[weekKey].avgTemp += parseFloat(record.Temperature);
+                aggregated[weekKey].avgHumidity += parseFloat(record.Humidity);
+                aggregated[weekKey].avgPower += parseFloat(record.Actual_Power);
+                aggregated[weekKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage);
                 aggregated[weekKey].count++;
             });
             
@@ -1185,12 +1643,13 @@
                 aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
                 aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
                 aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+                aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
             });
             
             return Object.values(aggregated);
         }
 
-        // Aggregate data by month for year view
+        // Aggregate data by month for year view - Updated for battery data
         function aggregateDataByMonth(data) {
             const aggregated = {};
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1207,13 +1666,15 @@
                         avgTemp: 0,
                         avgHumidity: 0,
                         avgPower: 0,
+                        avgBatteryVoltage: 0,
                         count: 0
                     };
                 }
                 
-                aggregated[monthKey].avgTemp += parseFloat(record['Temperature (°C)']);
-                aggregated[monthKey].avgHumidity += parseFloat(record['Humidity (%)']);
-                aggregated[monthKey].avgPower += parseFloat(record['Power Output (W)']);
+                aggregated[monthKey].avgTemp += parseFloat(record.Temperature);
+                aggregated[monthKey].avgHumidity += parseFloat(record.Humidity);
+                aggregated[monthKey].avgPower += parseFloat(record.Actual_Power);
+                aggregated[monthKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage);
                 aggregated[monthKey].count++;
             });
             
@@ -1222,6 +1683,7 @@
                 aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
                 aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
                 aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+                aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
             });
             
             return Object.values(aggregated);
@@ -1234,7 +1696,7 @@
             return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
         }
 
-        // Update historical data table
+        // Update historical data table - Updated for battery columns
         function updateHistoricalTable(data) {
             historicalTableBody.innerHTML = '';
             
@@ -1244,21 +1706,26 @@
             displayData.forEach(record => {
                 const row = document.createElement('tr');
                 const date = new Date(record.Timestamp);
+                const efficiencyText = record.Efficiency_Class === 2 ? 'High' : 
+                                     record.Efficiency_Class === 1 ? 'Medium' : 'Low';
                 
                 row.innerHTML = `
                     <td>${date.toLocaleString()}</td>
-                    <td>${record['Temperature (°C)']}</td>
-                    <td>${record['Humidity (%)']}</td>
-                    <td>${record['Solar Voltage (V)']}</td>
-                    <td>${record['Solar Current (A)']}</td>
-                    <td>${record['Solar Irradiance (Lux)']}</td>
-                    <td>${record['Battery Voltage (V)']}</td>
-                    <td>${record['Battery Current (A)']}</td>
-                    <td>${record['Power Output (W)']}</td>
+                    <td>${record.Temperature}</td>
+                    <td>${record.Humidity}</td>
+                    <td>${record.Panel_Voltage}</td>
+                    <td>${record.Panel_Current}</td>
+                    <td>${record.Battery_Voltage}</td>
+                    <td>${record.Charge_Current}</td>
+                    <td>${record.Actual_Power}</td>
+                    <td>${efficiencyText}</td>
                 `;
                 
                 historicalTableBody.appendChild(row);
             });
+            
+            // Update data points count
+            dataPoints.textContent = data.length;
         }
 
         // DATE PICKER FORM
