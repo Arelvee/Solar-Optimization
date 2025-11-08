@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,58 +23,58 @@
             --dark: #212529;
             --purple: #6f42c1;
         }
-        
+
         body {
             background-color: #f5f7fb;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .navbar-custom {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .card-custom {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
+
         .card-custom:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .sensor-card {
             border-left: 4px solid;
             height: 100%;
         }
-        
+
         .sensor-card.temperature {
             border-left-color: var(--danger);
         }
-        
+
         .sensor-card.humidity {
             border-left-color: var(--info);
         }
-        
+
         .sensor-card.voltage {
             border-left-color: var(--warning);
         }
-        
+
         .sensor-card.current {
             border-left-color: #fd7e14;
         }
-        
+
         .sensor-card.power {
             border-left-color: var(--success);
         }
-        
+
         .sensor-card.battery {
             border-left-color: #6f42c1;
         }
-        
+
         /* Enhanced Alert Styles */
         .alert-card {
             border-radius: 10px;
@@ -81,76 +82,76 @@
             border-left: 4px solid;
             transition: all 0.3s ease;
         }
-        
+
         .alert-card.critical {
             border-left-color: var(--danger);
             background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
         }
-        
+
         .alert-card.warning {
             border-left-color: var(--warning);
             background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
         }
-        
+
         .alert-card.info {
             border-left-color: var(--info);
             background: linear-gradient(135deg, #e3fafc 0%, #c5f6fa 100%);
         }
-        
+
         .alert-card:hover {
             transform: translateX(5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .alert-scroll-container {
             max-height: 400px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #cbd5e0 #f7fafc;
         }
-        
+
         .alert-scroll-container::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .alert-scroll-container::-webkit-scrollbar-track {
             background: #f7fafc;
             border-radius: 3px;
         }
-        
+
         .alert-scroll-container::-webkit-scrollbar-thumb {
             background: #cbd5e0;
             border-radius: 3px;
         }
-        
+
         .alert-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
         }
-        
+
         .alert-badge {
             font-size: 0.65rem;
             padding: 3px 6px;
         }
-        
+
         .alert-timestamp {
             font-size: 0.75rem;
             color: #6c757d;
         }
-        
+
         .alert-message {
             font-size: 0.85rem;
             line-height: 1.4;
         }
-        
+
         .alert-actions {
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
+
         .alert-card:hover .alert-actions {
             opacity: 1;
         }
-        
+
         .alert-count-badge {
             position: absolute;
             top: -8px;
@@ -165,73 +166,107 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .progress-thin {
             height: 6px;
         }
-        
+
         .metric-value {
             font-size: 1.5rem;
             font-weight: 700;
         }
-        
+
         .status-badge {
             font-size: 0.7rem;
             padding: 4px 8px;
         }
-        
+
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
-        
+
         .time-btn.active {
             background-color: var(--primary);
             color: white;
         }
-        
+
         .footer-custom {
             background-color: var(--dark);
             color: white;
         }
-        
+
         .pulse {
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
-        
+
         .data-table {
             font-size: 0.85rem;
         }
-        
+
         .data-table th {
             position: sticky;
             top: 0;
             background-color: #f8f9fa;
         }
-        
+
+        /* Table animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                background-color: #d4edda;
+            }
+
+            to {
+                opacity: 1;
+                background-color: transparent;
+            }
+        }
+
+        .table-success {
+            transition: background-color 0.5s ease;
+        }
+
+        /* Refresh indicator */
+        .refresh-indicator {
+            margin-top: 5px;
+        }
+
         .location-card {
             border-left: 4px solid;
         }
-        
+
         .location-1 {
             border-left-color: #1e3c72;
         }
-        
+
         .location-2 {
             border-left-color: #198754;
         }
-        
+
         .location-3 {
             border-left-color: #fd7e14;
         }
-        
+
         .device-status {
             display: inline-block;
             width: 10px;
@@ -239,37 +274,37 @@
             border-radius: 50%;
             margin-right: 5px;
         }
-        
+
         .status-online {
             background-color: var(--success);
         }
-        
+
         .status-offline {
             background-color: var(--danger);
         }
-        
+
         .location-selector {
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .location-selector.active {
             background-color: var(--primary);
             color: white;
         }
-        
+
         .alert-filter-btn {
             font-size: 0.8rem;
             padding: 4px 8px;
         }
-        
+
         .alert-summary {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-radius: 8px;
             padding: 10px;
             margin-bottom: 10px;
         }
-        
+
         .alert-priority-indicator {
             width: 4px;
             height: 100%;
@@ -278,82 +313,116 @@
             top: 0;
             border-radius: 4px 0 0 4px;
         }
-        
+
         .alert-priority-high {
             background: var(--danger);
         }
-        
+
         .alert-priority-medium {
             background: var(--warning);
         }
-        
+
         .alert-priority-low {
             background: var(--info);
         }
-        
+
         /* Battery specific styles */
         .battery-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .battery-level {
             height: 20px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             overflow: hidden;
             margin-top: 10px;
         }
-        
+
         .battery-fill {
             height: 100%;
             background: linear-gradient(90deg, #4cd964, #5ac8fa);
             border-radius: 10px;
             transition: width 0.5s ease;
         }
-        
+
         .battery-info {
             font-size: 0.8rem;
             opacity: 0.9;
         }
-        
+
+        /* Load Status Card Styles */
+        .sensor-card.border-success {
+            border-left-color: var(--success) !important;
+        }
+
+        .sensor-card.border-warning {
+            border-left-color: var(--warning) !important;
+        }
+
+        .sensor-card.border-danger {
+            border-left-color: var(--danger) !important;
+        }
+
+        .sensor-card.border-info {
+            border-left-color: var(--info) !important;
+        }
+
+        .load-status-normal {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .load-status-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        }
+
+        .load-status-critical {
+            background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
+        }
+
+        .load-status-unknown {
+            background: linear-gradient(135deg, #d1ecf1 0%, #b6d7e2 100%);
+        }
+
         /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             .alert-card {
                 margin-bottom: 8px;
                 padding: 10px;
             }
-            
+
             .alert-scroll-container {
                 max-height: 300px;
             }
-            
+
             .alert-message {
                 font-size: 0.8rem;
             }
-            
+
             .alert-actions {
-                opacity: 1; /* Always show on mobile */
+                opacity: 1;
+                /* Always show on mobile */
             }
-            
+
             .metric-value {
                 font-size: 1.2rem;
             }
         }
-        
+
         @media (max-width: 576px) {
             .alert-scroll-container {
                 max-height: 250px;
             }
-            
+
             .alert-card {
                 flex-direction: column;
             }
-            
+
             .alert-content {
                 width: 100%;
             }
-            
+
             .alert-actions {
                 width: 100%;
                 margin-top: 8px;
@@ -364,12 +433,18 @@
         .bg-purple {
             background-color: var(--purple) !important;
         }
-        
+
         .text-purple {
             color: var(--purple) !important;
         }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
@@ -433,6 +508,25 @@
             </div>
         </div>
 
+        <!-- Prediction Model Modal -->
+        <div class="modal fade" id="modelPopup" tabindex="-1" aria-labelledby="modelPopupLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content bg-dark text-center">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title text-light" id="modelPopupLabel">
+                            <i class="bi bi-lightning-charge"></i> AI Prediction Model
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <img src="/static/img/prediction_model.png" alt="Prediction Model"
+                            class="img-fluid rounded shadow-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Summary Cards -->
         <div class="row mb-4">
             <!-- System Status -->
@@ -460,7 +554,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Battery Status -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 battery-card">
@@ -485,7 +579,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Power Output -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 location-1">
@@ -505,7 +599,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Environment -->
             <div class="col-md-3 mb-3">
                 <div class="card card-custom h-100 location-1">
@@ -544,13 +638,17 @@
                             Real-time Sensor Data - <span id="current-location">Sto Tomas</span>
                         </h4>
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="locationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button"
+                                id="locationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 Switch Location
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="locationDropdown">
-                                <li><a class="dropdown-item location-option" href="#" data-location="sto_tomas">Sto Tomas</a></li>
-                                <li><a class="dropdown-item location-option" href="#" data-location="lspu_san_pablo">LSPU San Pablo</a></li>
-                                <li><a class="dropdown-item location-option" href="#" data-location="san_pablo_city">San Pablo City</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="sto_tomas">Sto
+                                        Tomas</a></li>
+                                <li><a class="dropdown-item location-option" href="#"
+                                        data-location="lspu_san_pablo">LSPU San Pablo</a></li>
+                                <li><a class="dropdown-item location-option" href="#" data-location="san_pablo_city">San
+                                        Pablo City</a></li>
                             </ul>
                         </div>
                     </div>
@@ -569,7 +667,8 @@
                             Historical Data - <span id="chart-location">Sto Tomas</span>
                         </h4>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button id="day-btn" type="button" class="btn btn-outline-primary time-btn active">24H</button>
+                            <button id="day-btn" type="button"
+                                class="btn btn-outline-primary time-btn active">24H</button>
                             <button id="week-btn" type="button" class="btn btn-outline-primary time-btn">Week</button>
                             <button id="month-btn" type="button" class="btn btn-outline-primary time-btn">Month</button>
                             <button id="year-btn" type="button" class="btn btn-outline-primary time-btn">Year</button>
@@ -587,16 +686,20 @@
             <div class="col-lg-4 mb-4">
                 <!-- Enhanced Alerts Panel -->
                 <div class="card card-custom mb-4">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center position-relative">
+                    <div
+                        class="card-header bg-white border-0 d-flex justify-content-between align-items-center position-relative">
                         <h4 class="card-title mb-0 d-flex align-items-center">
                             <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
                             System Alerts
                             <span id="alert-count" class="alert-count-badge">0</span>
                         </h4>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-secondary alert-filter-btn active" data-filter="all">All</button>
-                            <button type="button" class="btn btn-outline-danger alert-filter-btn" data-filter="critical">Critical</button>
-                            <button type="button" class="btn btn-outline-warning alert-filter-btn" data-filter="warning">Warning</button>
+                            <button type="button" class="btn btn-outline-secondary alert-filter-btn active"
+                                data-filter="all">All</button>
+                            <button type="button" class="btn btn-outline-danger alert-filter-btn"
+                                data-filter="critical">Critical</button>
+                            <button type="button" class="btn btn-outline-warning alert-filter-btn"
+                                data-filter="warning">Warning</button>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -617,7 +720,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Alerts Container with Scroll -->
                         <div class="alert-scroll-container p-3">
                             <div id="alerts">
@@ -629,7 +732,7 @@
                                 <small class="text-muted">System is operating normally</small>
                             </div>
                         </div>
-                        
+
                         <!-- Alert Actions -->
                         <div class="border-top p-3 bg-light">
                             <div class="d-flex justify-content-between align-items-center">
@@ -648,31 +751,73 @@
                 </div>
 
                 <!-- AI Predictions -->
+                <div class="card card-custom mb-4 prediction-card">
+                    <div class="card-header bg-transparent border-0">
+                        <h4 class="card-title mb-0 d-flex align-items-center text-white">
+                            <i class="bi bi-cpu text-white me-2"></i>
+                            Machine Learning Predictions
+                        </h4>
+                    </div>
+                    <div class="card-body text-white">
+                        <div id="fnn-predictions">
+                            <div class="mb-3 p-3 bg-white bg-opacity-10 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-medium">Predicted Efficiency</span>
+                                    <span id="fnn-efficiency" class="fw-bold fs-5">--</span>
+                                </div>
+                                <div class="progress progress-thin bg-white bg-opacity-20">
+                                    <div id="efficiency-bar" class="progress-bar bg-success" role="progressbar"
+                                        style="width: 0%"></div>
+                                </div>
+                                <small class="text-white-50">Based on current conditions</small>
+                            </div>
+                            <div class="p-3 bg-white bg-opacity-10 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-medium">Predicted Power</span>
+                                    <span id="fnn-power" class="fw-bold fs-5">-- W</span>
+                                </div>
+                                <div class="progress progress-thin bg-white bg-opacity-20">
+                                    <div id="power-bar" class="progress-bar bg-info" role="progressbar"
+                                        style="width: 0%"></div>
+                                </div>
+                                <small class="text-white-50">Next hour forecast</small>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <button id="run-prediction" class="btn btn-light btn-sm">
+                                    <i class="bi bi-lightning-charge"></i> Prediction Model
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load Management Status Card -->
                 <div class="card card-custom mb-4">
                     <div class="card-header bg-white border-0">
                         <h4 class="card-title mb-0 d-flex align-items-center">
-                            <i class="bi bi-cpu text-purple me-2"></i>
-                            AI Predictions
+                            <i class="bi bi-plug text-warning me-2"></i>
+                            Load Management Status
                         </h4>
                     </div>
                     <div class="card-body">
-                        <div id="fnn-predictions">
-                            <div class="mb-3 p-3 bg-light rounded">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-medium text-muted">Efficiency</span>
-                                    <span id="fnn-efficiency" class="fw-bold fs-5 text-purple">--</span>
+                        <div id="load-status-static-card">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="bi bi-gear-fill text-primary" style="font-size: 2rem;"></i>
                                 </div>
-                                <div class="progress progress-thin">
-                                    <div id="efficiency-bar" class="progress-bar bg-purple" role="progressbar" style="width: 0%"></div>
+                                <h5 id="static-load-status" class="text-dark mb-3">--</h5>
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Current Action:</span>
+                                        <span id="static-load-action" class="fw-bold">--</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-muted">Recommendation:</span>
+                                        <span id="static-recommended-action" class="fw-bold text-info">--</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="p-3 bg-light rounded">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-medium text-muted">Power Output</span>
-                                    <span id="fnn-power" class="fw-bold fs-5 text-primary">-- W</span>
-                                </div>
-                                <div class="progress progress-thin">
-                                    <div id="power-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                <div class="mt-3">
+                                    <small class="text-muted" id="load-status-updated">Last updated: --</small>
                                 </div>
                             </div>
                         </div>
@@ -697,7 +842,8 @@
                                 <label for="end-date" class="form-label">End Date</label>
                                 <input type="datetime-local" class="form-control" id="end-date">
                             </div>
-                            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
+                            <button type="submit"
+                                class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
                                 <i class="bi bi-download me-2"></i>
                                 Fetch Data
                             </button>
@@ -727,7 +873,8 @@
             <div class="card-header bg-white border-0">
                 <h4 class="card-title mb-0 d-flex align-items-center">
                     <i class="bi bi-table text-info me-2"></i>
-                    Historical Data Table - <span id="table-location">Sto Tomas</span>
+                    Today's Data - <span id="table-location">Sto Tomas</span>
+                    <span class="badge bg-success ms-2">Live</span>
                 </h4>
             </div>
             <div class="card-body">
@@ -743,7 +890,7 @@
                                 <th>Battery Voltage (V)</th>
                                 <th>Battery Current (A)</th>
                                 <th>Power Output (W)</th>
-                                <th>Efficiency</th>
+                                <th>Efficiency Class</th>
                             </tr>
                         </thead>
                         <tbody id="historical-table-body">
@@ -753,515 +900,277 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer-custom py-4 mt-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-sun-fill text-warning me-2" style="font-size: 1.5rem;"></i>
-                        <span class="fs-5 fw-bold">Solar Energy Optimization Monitoring</span>
+        <!-- Footer -->
+        <footer class="footer-custom py-4 mt-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-sun-fill text-warning me-2" style="font-size: 1.5rem;"></i>
+                            <span class="fs-5 fw-bold">Solar Energy Optimization Monitoring</span>
+                        </div>
+                        <p class="text-light mb-0 mt-1">MS Electrical Engineering - Engr. Kimuel Caperina</p>
                     </div>
-                    <p class="text-light mb-0 mt-1">Advanced AI-powered solar energy analytics across multiple locations</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-light mb-0">© 2025 Solar Analytics. All rights reserved.</p>
+                    <div class="col-md-6 text-md-end">
+                        <p class="text-light mb-0">© 2025 Solar Energy Harvesting Optimization and Load Management. All
+                            rights reserved.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </footer>
+        </footer>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Bootstrap JS Bundle -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // DOM Elements
-        const sensorCards = document.getElementById('sensor-cards');
-        const alertsDiv = document.getElementById('alerts');
-        const noAlertsDiv = document.getElementById('no-alerts');
-        const alertCount = document.getElementById('alert-count');
-        const alertSummary = document.getElementById('alert-summary');
-        const criticalCount = document.getElementById('critical-count');
-        const warningCount = document.getElementById('warning-count');
-        const infoCount = document.getElementById('info-count');
-        const clearAlertsBtn = document.getElementById('clear-alerts');
-        const refreshAlertsBtn = document.getElementById('refresh-alerts');
-        const alertTimeRange = document.getElementById('alert-time-range');
-        const fnnEfficiency = document.getElementById('fnn-efficiency');
-        const fnnPower = document.getElementById('fnn-power');
-        const efficiencyBar = document.getElementById('efficiency-bar');
-        const powerBar = document.getElementById('power-bar');
-        const efficiencyValue = document.getElementById('efficiency-value');
-        const efficiencyStatus = document.getElementById('efficiency-status');
-        const powerValue = document.getElementById('power-value');
-        const powerStatus = document.getElementById('power-status');
-        const temperatureValue = document.getElementById('temperature-value');
-        const humidityValue = document.getElementById('humidity-value');
-        const irradianceValue = document.getElementById('irradiance-value');
-        const lastUpdated = document.getElementById('last-updated');
-        const dataPoints = document.getElementById('data-points');
-        const currentTime = document.getElementById('current-time');
-        const historicalTableBody = document.getElementById('historical-table-body');
-        const currentLocationSpan = document.getElementById('current-location');
-        const chartLocationSpan = document.getElementById('chart-location');
-        const tableLocationSpan = document.getElementById('table-location');
-        
-        // Battery elements
-        const batteryVoltage = document.getElementById('battery-voltage');
-        const batteryCurrent = document.getElementById('battery-current');
-        const batterySoc = document.getElementById('battery-soc');
-        const batteryFill = document.getElementById('battery-fill');
-        const netPower = document.getElementById('net-power');
-        
-        let chart;
-        let comparisonChart;
-        let updateInterval;
-        let currentTimeRange = 'day';
-        let currentLocation = 'sto_tomas'; // Default to Sto Tomas
-        const locationNames = {
-            'sto_tomas': 'Sto Tomas',
-            'lspu_san_pablo': 'LSPU San Pablo', 
-            'san_pablo_city': 'San Pablo City'
-        };
+        <script>
+            // DOM Elements
+            const sensorCards = document.getElementById('sensor-cards');
+            const alertsDiv = document.getElementById('alerts');
+            const noAlertsDiv = document.getElementById('no-alerts');
+            const alertCount = document.getElementById('alert-count');
+            const alertSummary = document.getElementById('alert-summary');
+            const criticalCount = document.getElementById('critical-count');
+            const warningCount = document.getElementById('warning-count');
+            const infoCount = document.getElementById('info-count');
+            const clearAlertsBtn = document.getElementById('clear-alerts');
+            const refreshAlertsBtn = document.getElementById('refresh-alerts');
+            const alertTimeRange = document.getElementById('alert-time-range');
+            const fnnEfficiency = document.getElementById('fnn-efficiency');
+            const fnnPower = document.getElementById('fnn-power');
+            const efficiencyBar = document.getElementById('efficiency-bar');
+            const powerBar = document.getElementById('power-bar');
+            const runPredictionBtn = document.getElementById('run-prediction');
+            const temperatureValue = document.getElementById('temperature-value');
+            const humidityValue = document.getElementById('humidity-value');
+            const irradianceValue = document.getElementById('irradiance-value');
+            const lastUpdated = document.getElementById('last-updated');
+            const dataPoints = document.getElementById('data-points');
+            const currentTime = document.getElementById('current-time');
+            const historicalTableBody = document.getElementById('historical-table-body');
+            const currentLocationSpan = document.getElementById('current-location');
+            const chartLocationSpan = document.getElementById('chart-location');
+            const tableLocationSpan = document.getElementById('table-location');
 
-        // Enhanced alert management
-        let currentAlertFilter = 'all';
-        let allAlerts = [];
+            // Battery elements
+            const batteryVoltage = document.getElementById('battery-voltage');
+            const batteryCurrent = document.getElementById('battery-current');
+            const batterySoc = document.getElementById('battery-soc');
+            const batteryFill = document.getElementById('battery-fill');
+            const netPower = document.getElementById('net-power');
+            const powerValue = document.getElementById('power-value');
+            const powerStatus = document.getElementById('power-status');
 
-        // Initialize the dashboard
-        function initDashboard() {
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000);
-            
-            // Set default date range (last 24 hours)
-            const end = new Date();
-            const start = new Date();
-            start.setHours(start.getHours() - 24);
-            
-            document.getElementById('start-date').value = formatDateForInput(start);
-            document.getElementById('end-date').value = formatDateForInput(end);
-            
-            // Set up location selectors
-            setupLocationSelectors();
-            
-            // Initialize enhanced alerts
-            initEnhancedAlerts();
-            
-            // Initial data fetch
-            updateDashboard();
-            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
-            updateComparisonChart();
-            
-            // Set up auto-refresh
-            updateInterval = setInterval(updateDashboard, 30000); // 30 seconds
-            
-            // Set up time range buttons
-            document.getElementById('day-btn').addEventListener('click', () => setTimeRange('day'));
-            document.getElementById('week-btn').addEventListener('click', () => setTimeRange('week'));
-            document.getElementById('month-btn').addEventListener('click', () => setTimeRange('month'));
-            document.getElementById('year-btn').addEventListener('click', () => setTimeRange('year'));
-        }
+            // Load Status elements
+            const staticLoadStatus = document.getElementById('static-load-status');
+            const staticLoadAction = document.getElementById('static-load-action');
+            const staticRecommendedAction = document.getElementById('static-recommended-action');
+            const loadStatusUpdated = document.getElementById('load-status-updated');
 
-        // Set up location selection functionality
-        function setupLocationSelectors() {
-            // Location selector cards
-            document.querySelectorAll('.location-selector').forEach(selector => {
-                selector.addEventListener('click', function() {
-                    const locationId = this.getAttribute('data-location');
-                    switchLocation(locationId);
-                });
-            });
-            
-            // Dropdown location options
-            document.querySelectorAll('.location-option').forEach(option => {
-                option.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const locationId = this.getAttribute('data-location');
-                    switchLocation(locationId);
-                });
-            });
-        }
+            let chart;
+            let comparisonChart;
+            let updateInterval;
+            let currentTimeRange = 'day';
+            let currentLocation = 'sto_tomas'; // Default to Sto Tomas
+            const locationNames = {
+                'sto_tomas': 'Sto Tomas',
+                'lspu_san_pablo': 'LSPU San Pablo',
+                'san_pablo_city': 'San Pablo City'
+            };
 
-        // Enhanced alert system initialization
-        function initEnhancedAlerts() {
-            setupAlertFilters();
-        }
+            // Enhanced alert management
+            let currentAlertFilter = 'all';
+            let allAlerts = [];
 
-        // Setup alert filtering
-        function setupAlertFilters() {
-            document.querySelectorAll('.alert-filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const filter = this.getAttribute('data-filter');
-                    
-                    // Update active filter button
-                    document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    currentAlertFilter = filter;
-                    filterAlerts();
-                });
-            });
-            
-            // Clear alerts button
-            clearAlertsBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to clear all alerts?')) {
-                    clearAllAlerts();
+            // ==============================
+            // INITIALIZATION FUNCTIONS
+            // ==============================
+
+
+            // Initialize the dashboard
+            function initDashboard() {
+                updateCurrentTime();
+                setInterval(updateCurrentTime, 1000);
+
+                // Set default date range to today
+                const end = new Date();
+                const start = new Date();
+                start.setHours(0, 0, 0, 0); // Start of today
+
+                document.getElementById('start-date').value = formatDateForInput(start);
+                document.getElementById('end-date').value = formatDateForInput(end);
+
+                // Set up location selectors
+                setupLocationSelectors();
+
+                // Initialize enhanced alerts
+                initEnhancedAlerts();
+
+                // Initialize load status monitoring
+                initLoadStatusMonitoring();
+
+                // Set up prediction button
+                runPredictionBtn.addEventListener('click', runPrediction);
+
+                // Initial data fetch
+                updateDashboard();
+                fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+                updateComparisonChart();
+
+                // Set up auto-refresh for dashboard and historical data
+                updateInterval = setInterval(updateDashboard, 30000); // 30 seconds
+                startHistoricalDataAutoRefresh(); // Start historical data auto-refresh
+
+                // Set up time range buttons
+                document.getElementById('day-btn').addEventListener('click', () => setTimeRange('day'));
+                document.getElementById('week-btn').addEventListener('click', () => setTimeRange('week'));
+                document.getElementById('month-btn').addEventListener('click', () => setTimeRange('month'));
+                document.getElementById('year-btn').addEventListener('click', () => setTimeRange('year'));
+
+                // Debug API connectivity
+                setTimeout(testAPIConnectivity, 2000);
+            }
+            // ==============================
+            // API FUNCTIONS
+            // ==============================
+
+            // Fetch real-time data from backend
+            async function fetchCurrentData(location) {
+                try {
+                    const response = await fetch(`/api/current/${location}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error fetching current data:', error);
+                    return null;
                 }
-            });
-            
-            // Refresh alerts button
-            refreshAlertsBtn.addEventListener('click', function() {
-                fetchAlerts(currentLocation).then(alerts => {
-                    allAlerts = alerts;
-                    updateAlertsDisplay();
-                });
-            });
-        }
-
-        // Filter alerts based on current filter
-        function filterAlerts() {
-            let filteredAlerts = allAlerts;
-            
-            if (currentAlertFilter === 'critical') {
-                filteredAlerts = allAlerts.filter(alert => alert.severity === 'critical');
-            } else if (currentAlertFilter === 'warning') {
-                filteredAlerts = allAlerts.filter(alert => alert.severity === 'warning');
             }
-            
-            displayAlerts(filteredAlerts);
-        }
 
-        // Update alerts display with enhanced styling
-        function displayAlerts(alerts) {
-            alertsDiv.innerHTML = '';
-            
-            if (alerts.length === 0) {
-                noAlertsDiv.style.display = 'block';
-                clearAlertsBtn.disabled = true;
-                return;
-            }
-            
-            noAlertsDiv.style.display = 'none';
-            clearAlertsBtn.disabled = false;
-            
-            alerts.forEach(alert => {
-                const alertClass = getAlertClass(alert.severity);
-                const priorityClass = getPriorityClass(alert.severity);
-                const icon = getAlertIcon(alert.severity);
-                
-                const alertElement = document.createElement('div');
-                alertElement.className = `alert-card ${alertClass} d-flex align-items-start position-relative`;
-                alertElement.innerHTML = `
-                    <div class="alert-priority-indicator ${priorityClass}"></div>
-                    <div class="alert-content flex-grow-1 me-2">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h6 class="alert-heading mb-0 d-flex align-items-center">
-                                <i class="bi ${icon} me-2"></i>
-                                ${alert.type.toUpperCase()} Alert
-                            </h6>
-                            <span class="badge ${getBadgeClass(alert.severity)} alert-badge">${alert.severity}</span>
-                        </div>
-                        <p class="alert-message mb-1">${alert.message}</p>
-                        <small class="alert-timestamp">${new Date(alert.timestamp).toLocaleString()}</small>
-                    </div>
-                    <div class="alert-actions d-flex flex-column">
-                        <button class="btn btn-sm btn-outline-secondary mb-1" onclick="dismissAlert('${alert.timestamp}')" title="Dismiss">
-                            <i class="bi bi-x"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="viewAlertDetails('${alert.timestamp}')" title="Details">
-                            <i class="bi bi-info"></i>
-                        </button>
-                    </div>
-                `;
-                
-                alertsDiv.appendChild(alertElement);
-            });
-        }
-
-        // Update alerts summary and counts
-        function updateAlertsSummary(alerts) {
-            const critical = alerts.filter(a => a.severity === 'critical').length;
-            const warning = alerts.filter(a => a.severity === 'warning').length;
-            const info = alerts.filter(a => a.severity === 'info').length;
-            
-            criticalCount.textContent = critical;
-            warningCount.textContent = warning;
-            infoCount.textContent = info;
-            
-            alertCount.textContent = alerts.length;
-            
-            // Show summary if there are alerts
-            if (alerts.length > 0) {
-                alertSummary.classList.remove('d-none');
-            } else {
-                alertSummary.classList.add('d-none');
-            }
-        }
-
-        // Helper functions for alert styling
-        function getAlertClass(severity) {
-            switch(severity) {
-                case 'critical': return 'critical';
-                case 'warning': return 'warning';
-                case 'info': return 'info';
-                default: return 'warning';
-            }
-        }
-
-        function getPriorityClass(severity) {
-            switch(severity) {
-                case 'critical': return 'alert-priority-high';
-                case 'warning': return 'alert-priority-medium';
-                case 'info': return 'alert-priority-low';
-                default: return 'alert-priority-medium';
-            }
-        }
-
-        function getAlertIcon(severity) {
-            switch(severity) {
-                case 'critical': return 'bi-exclamation-octagon-fill text-danger';
-                case 'warning': return 'bi-exclamation-triangle-fill text-warning';
-                case 'info': return 'bi-info-circle-fill text-info';
-                default: return 'bi-exclamation-triangle-fill text-warning';
-            }
-        }
-
-        function getBadgeClass(severity) {
-            switch(severity) {
-                case 'critical': return 'bg-danger';
-                case 'warning': return 'bg-warning';
-                case 'info': return 'bg-info';
-                default: return 'bg-warning';
-            }
-        }
-
-        // Alert action functions
-        function dismissAlert(timestamp) {
-            // In a real application, you would send this to the backend
-            allAlerts = allAlerts.filter(alert => alert.timestamp !== timestamp);
-            updateAlertsDisplay();
-        }
-
-        function viewAlertDetails(timestamp) {
-            const alert = allAlerts.find(a => a.timestamp === timestamp);
-            if (alert) {
-                alert(`Alert Details:\n\nType: ${alert.type}\nSeverity: ${alert.severity}\nMessage: ${alert.message}\nTime: ${new Date(alert.timestamp).toLocaleString()}`);
-            }
-        }
-
-        function clearAllAlerts() {
-            allAlerts = [];
-            updateAlertsDisplay();
-        }
-
-        // Enhanced updateAlerts function
-        async function updateAlerts() {
-            const alertsData = await fetchAlerts(currentLocation);
-            allAlerts = alertsData;
-            updateAlertsDisplay();
-        }
-
-        function updateAlertsDisplay() {
-            updateAlertsSummary(allAlerts);
-            filterAlerts();
-        }
-
-        // Switch between locations
-        function switchLocation(locationId) {
-            currentLocation = locationId;
-            
-            // Update active location selectors
-            document.querySelectorAll('.location-selector').forEach(selector => {
-                if (selector.getAttribute('data-location') === locationId) {
-                    selector.classList.add('active');
-                } else {
-                    selector.classList.remove('active');
+            // Fetch historical data from backend
+            async function fetchHistoricalData(start, end) {
+                try {
+                    const response = await fetch(`/api/historical/${currentLocation}?start=${start}&end=${end}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    updateHistoricalChart(data);
+                    updateHistoricalTable(data);
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching historical data:', error);
+                    return [];
                 }
-            });
-            
-            // Update location text
-            currentLocationSpan.textContent = locationNames[currentLocation];
-            chartLocationSpan.textContent = locationNames[currentLocation];
-            tableLocationSpan.textContent = locationNames[currentLocation];
-            
-            // Update card borders
-            document.querySelectorAll('.location-1, .location-2, .location-3').forEach(card => {
-                card.classList.remove('location-1', 'location-2', 'location-3');
-                // Simple mapping for visual consistency
-                if (locationId === 'sto_tomas') card.classList.add('location-1');
-                else if (locationId === 'lspu_san_pablo') card.classList.add('location-2');
-                else card.classList.add('location-3');
-            });
-            
-            // Refresh data for the new location
-            updateDashboard();
-            
-            // Update historical data with current time range
-            const end = new Date();
-            const start = new Date();
-            
-            switch(currentTimeRange) {
-                case 'day':
-                    start.setHours(start.getHours() - 24);
-                    break;
-                case 'week':
-                    start.setDate(start.getDate() - 7);
-                    break;
-                case 'month':
-                    start.setMonth(start.getMonth() - 1);
-                    break;
-                case 'year':
-                    start.setFullYear(start.getFullYear() - 1);
-                    break;
             }
-            
-            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
-        }
 
-        // Update current time display
-        function updateCurrentTime() {
-            const now = new Date();
-            currentTime.textContent = now.toLocaleString();
-        }
-
-        // Format date for datetime-local input
-        function formatDateForInput(date) {
-            return date.toISOString().slice(0, 16);
-        }
-
-        // Set time range for historical data
-        function setTimeRange(range) {
-            const end = new Date();
-            const start = new Date();
-            currentTimeRange = range;
-            
-            // Reset all buttons
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            switch(range) {
-                case 'day':
-                    start.setHours(start.getHours() - 24);
-                    document.getElementById('day-btn').classList.add('active');
-                    break;
-                case 'week':
-                    start.setDate(start.getDate() - 7);
-                    document.getElementById('week-btn').classList.add('active');
-                    break;
-                case 'month':
-                    start.setMonth(start.getMonth() - 1);
-                    document.getElementById('month-btn').classList.add('active');
-                    break;
-                case 'year':
-                    start.setFullYear(start.getFullYear() - 1);
-                    document.getElementById('year-btn').classList.add('active');
-                    break;
+            // Fetch alerts from backend
+            async function fetchAlerts(location) {
+                try {
+                    const response = await fetch(`/api/alerts/${location}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error fetching alerts:', error);
+                    return [];
+                }
             }
-            
-            document.getElementById('start-date').value = formatDateForInput(start);
-            document.getElementById('end-date').value = formatDateForInput(end);
-            fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
-        }
 
-        // Fetch real-time data from backend
-        async function fetchCurrentData(location) {
-            try {
-                const response = await fetch(`/api/current/${location}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching current data:', error);
-                return null;
+            // Fetch load status data for a specific location
+            async function fetchLoadStatus(location) {
+                try {
+                    const response = await fetch(`/api/load-status/${location}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error fetching load status:', error);
+                    return null;
+                }
             }
-        }
 
-        // Fetch historical data from backend
-        async function fetchHistoricalData(start, end) {
-            try {
-                const response = await fetch(`/api/historical/${currentLocation}?start=${start}&end=${end}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
-                updateHistoricalChart(data);
-                updateHistoricalTable(data);
-                return data;
-            } catch (error) {
-                console.error('Error fetching historical data:', error);
-                return [];
-            }
-        }
+            // ==============================
+            // DASHBOARD UPDATE FUNCTIONS
+            // ==============================
 
-        // Fetch alerts from backend
-        async function fetchAlerts(location) {
-            try {
-                const response = await fetch(`/api/alerts/${location}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching alerts:', error);
-                return [];
-            }
-        }
+            // UPDATE DASHBOARD - Main function
+            // UPDATE DASHBOARD - Ensure alerts are updated
+            async function updateDashboard() {
+                console.log('🚀 Dashboard update started');
 
-        // UPDATE DASHBOARD
-        async function updateDashboard() {
-            try {
-                // Fetch current data from backend
-                const currentData = await fetchCurrentData(currentLocation);
-                if (!currentData) {
-                    throw new Error('No data received');
+                try {
+                    // Fetch current data
+                    const currentData = await fetchCurrentData(currentLocation);
+
+                    if (currentData) {
+                        // Update all components with real data
+                        updateSensorCards(currentData);
+                        updateSummaryValues(currentData);
+                        updateBatteryInfo(currentData);
+                        updatePowerInfo(currentData);
+                        updateAIPredictions(currentData);
+                        lastUpdated.textContent = 'Just now';
+                    } else {
+                        updateWithPlaceholderData();
+                    }
+
+                    // CRITICAL: Always update alerts
+                    console.log('📢 Calling updateAlerts()...');
+                    await updateAlerts();
+
+                } catch (error) {
+                    console.error('Dashboard error:', error);
                 }
 
-                // Update last updated time
-                lastUpdated.textContent = 'Just now';
+                console.log('✅ Dashboard update completed');
+            }
 
-                // SENSOR CARDS - Updated to include battery information
+            // Update sensor cards
+            function updateSensorCards(currentData) {
                 sensorCards.innerHTML = '';
                 const sensors = [
-                    {name:'Temperature', value:currentData.Temperature, unit:'°C', icon:'bi-thermometer-half', color:'temperature', class:'danger'},
-                    {name:'Humidity', value:currentData.Humidity, unit:'%', icon:'bi-droplet-half', color:'humidity', class:'info'},
-                    {name:'Solar Voltage', value:currentData.Panel_Voltage, unit:'V', icon:'bi-lightning', color:'voltage', class:'warning'},
-                    {name:'Solar Current', value:currentData.Panel_Current, unit:'A', icon:'bi-lightning-charge', color:'current', class:'warning'},
-                    {name:'Solar GHI', value:currentData.Solar_Irradiance, unit:'W/m²', icon:'bi-brightness-high', color:'voltage', class:'warning'},
-                    {name:'Power Output', value:currentData.Actual_Power, unit:'W', icon:'bi-graph-up', color:'power', class:'success'},
-                    {name:'Battery Voltage', value:currentData.Battery_Voltage, unit:'V', icon:'bi-battery-half', color:'battery', class:'purple'},
-                    {name:'Battery Current', value:currentData.Charge_Current, unit:'A', icon:'bi-lightning-charge', color:'battery', class:'purple'},
-                    {name:'Load Power', value:currentData.Load_Power, unit:'W', icon:'bi-plug', color:'current', class:'warning'}
+                    { name: 'Temperature', value: currentData.Temperature || '--', unit: '°C', icon: 'bi-thermometer-half', color: 'temperature', class: 'danger' },
+                    { name: 'Humidity', value: currentData.Humidity || '--', unit: '%', icon: 'bi-droplet-half', color: 'humidity', class: 'info' },
+                    { name: 'Solar Voltage', value: currentData.Panel_Voltage || '--', unit: 'V', icon: 'bi-lightning', color: 'voltage', class: 'warning' },
+                    { name: 'Solar Current', value: currentData.Panel_Current || '--', unit: 'A', icon: 'bi-lightning-charge', color: 'current', class: 'warning' },
+                    { name: 'Solar GHI', value: currentData.Solar_Irradiance || '--', unit: 'Lux', icon: 'bi-brightness-high', color: 'voltage', class: 'warning' },
+                    { name: 'Power Output', value: currentData.Actual_Power || '--', unit: 'W', icon: 'bi-graph-up', color: 'power', class: 'success' },
+                    { name: 'Battery Voltage', value: currentData.Battery_Voltage || '--', unit: 'V', icon: 'bi-battery-half', color: 'battery', class: 'purple' },
+                    { name: 'Battery Current', value: currentData.Charge_Current || '--', unit: 'A', icon: 'bi-lightning-charge', color: 'battery', class: 'purple' },
+                    { name: 'Load Power', value: currentData.Load_Power || '--', unit: 'W', icon: 'bi-plug', color: 'current', class: 'warning' }
                 ];
-                
+
                 sensors.forEach(s => {
                     const col = document.createElement('div');
                     col.className = 'col-sm-6 col-md-4';
                     col.innerHTML = `
-                        <div class="card sensor-card ${s.color} h-100">
-                            <div class="card-body text-center p-3">
-                                <div class="text-${s.class} mb-2">
-                                    <i class="bi ${s.icon}" style="font-size: 1.5rem;"></i>
-                                </div>
-                                <h6 class="card-title text-muted">${s.name}</h6>
-                                <p class="card-text metric-value text-dark">${s.value} ${s.unit}</p>
+                    <div class="card sensor-card ${s.color} h-100">
+                        <div class="card-body text-center p-3">
+                            <div class="text-${s.class} mb-2">
+                                <i class="bi ${s.icon}" style="font-size: 1.5rem;"></i>
                             </div>
+                            <h6 class="card-title text-muted">${s.name}</h6>
+                            <p class="card-text metric-value text-dark">${s.value} ${s.unit}</p>
                         </div>
-                    `;
+                    </div>
+                `;
                     sensorCards.appendChild(col);
                 });
+            }
 
-                // Update environmental values
-                temperatureValue.textContent = currentData.Temperature + '°C';
-                humidityValue.textContent = currentData.Humidity + '%';
-                irradianceValue.textContent = currentData.Solar_Irradiance + ' W/m²';
+            // Update summary values
+            function updateSummaryValues(currentData) {
+                temperatureValue.textContent = (currentData.Temperature || '--') + '°C';
+                humidityValue.textContent = (currentData.Humidity || '--') + '%';
+                irradianceValue.textContent = (currentData.Solar_Irradiance || '--') + ' Lux';
+            }
 
-                // Update battery information
-                batteryVoltage.textContent = currentData.Battery_Voltage + ' V';
-                batteryCurrent.textContent = currentData.Charge_Current + ' A';
-                batterySoc.textContent = currentData.State_of_Charge + '%';
-                
+            // Update battery information
+            function updateBatteryInfo(currentData) {
+                batteryVoltage.textContent = (currentData.Battery_Voltage || '--') + ' V';
+                batteryCurrent.textContent = (currentData.Charge_Current || '--') + ' A';
+                batterySoc.textContent = (currentData.State_of_Charge || '--') + '%';
+
                 // Update battery fill level based on State of Charge
                 const soc = parseFloat(currentData.State_of_Charge) || 0;
                 batteryFill.style.width = soc + '%';
-                
+
                 // Change battery color based on charge level
                 if (soc > 70) {
                     batteryFill.style.background = 'linear-gradient(90deg, #4cd964, #5ac8fa)';
@@ -1270,286 +1179,614 @@
                 } else {
                     batteryFill.style.background = 'linear-gradient(90deg, #ff3b30, #ff9500)';
                 }
+            }
 
-                // Update power displays
-                powerValue.textContent = currentData.Actual_Power + ' W';
-                netPower.textContent = currentData.Net_Power + ' W';
-                
-                // Update efficiency displays
-                efficiencyValue.textContent = currentData.Efficiency_Class === 2 ? 'High' : 
-                                            currentData.Efficiency_Class === 1 ? 'Medium' : 'Low';
-                
-                // Update efficiency status
-                if(currentData.Efficiency_Class === 0) {
-                    efficiencyStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
-                } else if(currentData.Efficiency_Class === 1) {
-                    efficiencyStatus.innerHTML = '<span class="badge bg-warning status-badge">Medium</span>';
-                } else {
-                    efficiencyStatus.innerHTML = '<span class="badge bg-success status-badge">High</span>';
-                }
-                
+            // Update power information
+            function updatePowerInfo(currentData) {
+                powerValue.textContent = (currentData.Actual_Power || '--') + ' W';
+                netPower.textContent = (currentData.Net_Power || '--') + ' W';
+
                 // Update power status
-                if(currentData.Actual_Power < 50) {
+                const power = parseFloat(currentData.Actual_Power) || 0;
+                if (power < 50) {
                     powerStatus.innerHTML = '<span class="badge bg-danger status-badge">Low</span>';
-                } else if(currentData.Actual_Power < 80) {
+                } else if (power < 80) {
                     powerStatus.innerHTML = '<span class="badge bg-warning status-badge">Medium</span>';
                 } else {
                     powerStatus.innerHTML = '<span class="badge bg-success status-badge">High</span>';
                 }
-
-                // AI PREDICTIONS (using current data for demo)
-                fnnEfficiency.textContent = currentData.Efficiency_Class === 2 ? 'High' : 
-                                          currentData.Efficiency_Class === 1 ? 'Medium' : 'Low';
-                fnnPower.textContent = currentData.Actual_Power + ' W';
-                
-                // Update efficiency bar
-                efficiencyBar.style.width = `${(currentData.Efficiency_Class / 2) * 100}%`;
-                
-                // Update power bar (assuming max power is 120W for visualization)
-                const powerPercent = Math.min((currentData.Actual_Power / 120) * 100, 100);
-                powerBar.style.width = `${powerPercent}%`;
-
-                // Update alerts using the enhanced system
-                await updateAlerts();
-                
-            } catch(err) {
-                console.error('Dashboard update error:', err);
-                // Show error alert
-                const errorAlert = {
-                    timestamp: new Date().toISOString(),
-                    type: 'connection',
-                    severity: 'warning',
-                    message: 'Unable to fetch latest data. Check your connection.'
-                };
-                allAlerts = [errorAlert];
-                updateAlertsDisplay();
-            }
-        }
-
-        // HISTORICAL DATA CHART - Updated to include battery voltage
-        function updateHistoricalChart(data) {
-            if (!data || data.length === 0) return;
-
-            // Prepare data for chart based on time range
-            let labels, tempData, humData, powerData, batteryVoltageData;
-            
-            if (currentTimeRange === 'day') {
-                // For day view, show data by hour
-                labels = data.map(d => {
-                    const date = new Date(d.Timestamp);
-                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                });
-            } else if (currentTimeRange === 'week') {
-                // For week view, show data by day
-                const aggregated = aggregateDataByDay(data);
-                labels = aggregated.map(d => {
-                    const date = new Date(d.Timestamp);
-                    return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
-                });
-                tempData = aggregated.map(d => d.Temperature);
-                humData = aggregated.map(d => d.Humidity);
-                powerData = aggregated.map(d => d.Actual_Power);
-                batteryVoltageData = aggregated.map(d => d.Battery_Voltage);
-            } else if (currentTimeRange === 'month') {
-                // For month view, show data by week
-                const aggregated = aggregateDataByWeek(data);
-                labels = aggregated.map(d => d.weekLabel);
-                tempData = aggregated.map(d => d.avgTemp);
-                humData = aggregated.map(d => d.avgHumidity);
-                powerData = aggregated.map(d => d.avgPower);
-                batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
-            } else {
-                // For year view, show data by month
-                const aggregated = aggregateDataByMonth(data);
-                labels = aggregated.map(d => d.monthLabel);
-                tempData = aggregated.map(d => d.avgTemp);
-                humData = aggregated.map(d => d.avgHumidity);
-                powerData = aggregated.map(d => d.avgPower);
-                batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
             }
 
-            // If we haven't set the data yet (for day view), use the original data
-            if (!tempData) {
-                tempData = data.map(d => d.Temperature);
-                humData = data.map(d => d.Humidity);
-                powerData = data.map(d => d.Actual_Power);
-                batteryVoltageData = data.map(d => d.Battery_Voltage);
+            // Update AI predictions
+            function updateAIPredictions(currentData) {
+                const efficiencyClass = currentData.Efficiency_Class || 0;
+                const efficiencyText = efficiencyClass === 2 ? 'High' :
+                    efficiencyClass === 1 ? 'Medium' : 'Low';
+
+                const actualPower = currentData.Actual_Power || 0;
+
+                fnnEfficiency.textContent = efficiencyText;
+                fnnPower.textContent = actualPower.toFixed(1) + ' W';
+
+                // Update progress bars based on existing data
+                efficiencyBar.style.width = ((efficiencyClass / 2) * 100) + '%';
+                powerBar.style.width = Math.min((actualPower / 120) * 100, 100) + '%';
             }
 
-            if(chart) chart.destroy();
-            const ctx = document.getElementById('sensorChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Temperature (°C)',
-                            data: tempData,
-                            borderColor: 'rgb(220, 53, 69)',
-                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Humidity (%)',
-                            data: humData,
-                            borderColor: 'rgb(13, 202, 240)',
-                            backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y1'
-                        },
-                        {
-                            label: 'Power Output (W)',
-                            data: powerData,
-                            borderColor: 'rgb(25, 135, 84)',
-                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Battery Voltage (V)',
-                            data: batteryVoltageData,
-                            borderColor: 'rgb(111, 66, 193)',
-                            backgroundColor: 'rgba(111, 66, 193, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            yAxisID: 'y2'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Temperature (°C) / Power (W)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Humidity (%)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        },
-                        y2: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Battery Voltage (V)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                            offset: true
-                        }
+            // ==============================
+            // LOAD STATUS FUNCTIONS
+            // ==============================
+
+            // Update load status display in the dashboard
+            // Update load status display - RESILIENT VERSION
+            async function updateLoadStatus() {
+                try {
+                    console.log('🔄 Updating load status...');
+                    const loadStatusData = await fetchLoadStatus(currentLocation);
+
+                    if (!loadStatusData || loadStatusData.error) {
+                        console.warn('No load status data available');
+                        updateStaticLoadCard({
+                            load_status: 'No Data',
+                            load_action: 'No Data',
+                            recommended_action: 'No Data',
+                            timestamp: new Date().toISOString()
+                        });
+                        return;
                     }
-                }
-            });
-        }
 
-        // Update comparison chart with data from all locations
-        async function updateComparisonChart() {
-            try {
+                    console.log('✅ Load status data received:', loadStatusData);
+                    updateStaticLoadCard(loadStatusData);
+
+                } catch (error) {
+                    console.error('❌ Load status update failed:', error);
+                    updateStaticLoadCard({
+                        load_status: 'Connection Error',
+                        load_action: 'Retry',
+                        recommended_action: 'Check API',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+            // Update the static load status card
+            function updateStaticLoadCard(loadData) {
+                if (!loadData) {
+                    console.warn('No load data received');
+                    return;
+                }
+
+                const loadStatus = loadData.load_status || 'No Data';
+                const loadAction = loadData.load_action || 'No Data';
+                const recommendedAction = loadData.recommended_action || 'No Data';
+                const timestamp = loadData.timestamp || new Date().toISOString();
+
+                console.log('Updating Load Status Card:', { loadStatus, loadAction, recommendedAction });
+
+                // Update the card content
+                staticLoadStatus.textContent = loadStatus;
+                staticLoadAction.textContent = loadAction;
+                staticRecommendedAction.textContent = recommendedAction;
+                loadStatusUpdated.textContent = 'Last updated: ' + new Date(timestamp).toLocaleTimeString();
+
+                // Update card appearance based on status
+                updateStaticLoadCardAppearance(loadStatus, loadAction);
+            }
+
+            // Update static load card appearance based on status
+            function updateStaticLoadCardAppearance(status, action) {
+                const card = document.querySelector('#load-status-static-card').closest('.card');
+                const icon = document.querySelector('#load-status-static-card .bi-gear-fill');
+
+                // Remove existing color classes
+                card.classList.remove('border-success', 'border-warning', 'border-danger', 'border-info');
+                icon.classList.remove('text-success', 'text-warning', 'text-danger', 'text-info', 'text-primary');
+                staticLoadStatus.classList.remove('text-success', 'text-warning', 'text-danger', 'text-info', 'text-dark');
+
+                // Set color based on status and action
+                const statusLower = status.toLowerCase();
+                const actionLower = action.toLowerCase();
+
+                if (statusLower.includes('normal') || statusLower.includes('optimal') ||
+                    statusLower.includes('stable') || actionLower.includes('maintain') ||
+                    actionLower.includes('normal')) {
+                    card.classList.add('border-success');
+                    icon.classList.add('text-success');
+                    staticLoadStatus.classList.add('text-success');
+                } else if (statusLower.includes('warning') || statusLower.includes('high') ||
+                    statusLower.includes('reduce') || actionLower.includes('adjust') ||
+                    actionLower.includes('reduce')) {
+                    card.classList.add('border-warning');
+                    icon.classList.add('text-warning');
+                    staticLoadStatus.classList.add('text-warning');
+                } else if (statusLower.includes('critical') || statusLower.includes('emergency') ||
+                    statusLower.includes('shutdown') || statusLower.includes('overload') ||
+                    actionLower.includes('shutdown') || actionLower.includes('emergency')) {
+                    card.classList.add('border-danger');
+                    icon.classList.add('text-danger');
+                    staticLoadStatus.classList.add('text-danger');
+                } else if (statusLower.includes('no data') || statusLower.includes('error')) {
+                    card.classList.add('border-info');
+                    icon.classList.add('text-info');
+                    staticLoadStatus.classList.add('text-info');
+                } else {
+                    card.classList.add('border-primary');
+                    icon.classList.add('text-primary');
+                    staticLoadStatus.classList.add('text-dark');
+                }
+            }
+
+            // Initialize load status monitoring
+            function initLoadStatusMonitoring() {
+                // Set up periodic load status updates
+                setInterval(updateLoadStatus, 30000); // Update every 30 seconds
+
+                // Initial update
+                updateLoadStatus();
+            }
+
+            // ==============================
+            // LOCATION MANAGEMENT
+            // ==============================
+
+            // Set up location selection functionality
+            function setupLocationSelectors() {
+                // Location selector cards
+                document.querySelectorAll('.location-selector').forEach(selector => {
+                    selector.addEventListener('click', function () {
+                        const locationId = this.getAttribute('data-location');
+                        switchLocation(locationId);
+                    });
+                });
+
+                // Dropdown location options
+                document.querySelectorAll('.location-option').forEach(option => {
+                    option.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const locationId = this.getAttribute('data-location');
+                        switchLocation(locationId);
+                    });
+                });
+            }
+
+            // Switch between locations
+            function switchLocation(locationId) {
+                currentLocation = locationId;
+
+                // Update active location selectors
+                document.querySelectorAll('.location-selector').forEach(selector => {
+                    if (selector.getAttribute('data-location') === locationId) {
+                        selector.classList.add('active');
+                    } else {
+                        selector.classList.remove('active');
+                    }
+                });
+
+                // Update location text
+                currentLocationSpan.textContent = locationNames[currentLocation];
+                chartLocationSpan.textContent = locationNames[currentLocation];
+                tableLocationSpan.textContent = locationNames[currentLocation];
+
+                // Update card borders
+                document.querySelectorAll('.location-1, .location-2, .location-3').forEach(card => {
+                    card.classList.remove('location-1', 'location-2', 'location-3');
+                    // Simple mapping for visual consistency
+                    if (locationId === 'sto_tomas') card.classList.add('location-1');
+                    else if (locationId === 'lspu_san_pablo') card.classList.add('location-2');
+                    else card.classList.add('location-3');
+                });
+
+                // Refresh data for the new location
+                updateDashboard();
+
+                // Update historical data with current time range
                 const end = new Date();
                 const start = new Date();
-                start.setDate(start.getDate() - 7); // Last week
-                
-                // Fetch data for all locations
-                const [location1Data, location2Data, location3Data] = await Promise.all([
-                    fetch(`/api/historical/sto_tomas?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
-                    fetch(`/api/historical/lspu_san_pablo?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
-                    fetch(`/api/historical/san_pablo_city?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json())
-                ]);
 
-                // Aggregate data by day for comparison
-                const location1Aggregated = aggregateDataByDay(location1Data);
-                const location2Aggregated = aggregateDataByDay(location2Data);
-                const location3Aggregated = aggregateDataByDay(location3Data);
-                
-                const labels = location1Aggregated.map(d => {
-                    const date = new Date(d.Timestamp);
-                    return date.toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
+                switch (currentTimeRange) {
+                    case 'day':
+                        start.setHours(start.getHours() - 24);
+                        break;
+                    case 'week':
+                        start.setDate(start.getDate() - 7);
+                        break;
+                    case 'month':
+                        start.setMonth(start.getMonth() - 1);
+                        break;
+                    case 'year':
+                        start.setFullYear(start.getFullYear() - 1);
+                        break;
+                }
+
+                fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+            }
+            // ==============================
+            // ALERT SYSTEM (FINAL VERSION)
+            // ==============================
+
+            // Fetch alerts from Flask API
+            async function fetchAlerts(location) {
+                try {
+                    console.log("Fetching alerts for:", location);
+                    const response = await fetch(`/api/alerts/${encodeURIComponent(location)}`);
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch alerts: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    // Ensure data is always an array
+                    if (Array.isArray(data)) {
+                        console.log("Fetched alerts:", data);
+                        return data;
+                    } else if (data.alerts && Array.isArray(data.alerts)) {
+                        console.log("Fetched alerts (wrapped):", data.alerts);
+                        return data.alerts;
+                    } else {
+                        console.warn("API did not return a valid alerts array.");
+                        return [];
+                    }
+                } catch (error) {
+                    console.error("Error fetching alerts:", error);
+                    showToast("Error fetching alerts: " + error.message, "error");
+                    return [];
+                }
+            }
+
+            // ==============================
+            // INITIALIZATION
+            // ==============================
+            function initEnhancedAlerts() {
+                setupAlertFilters();
+                updateAlerts(); // fetch immediately
+                setInterval(updateAlerts, 60000); // refresh every 60 seconds
+            }
+
+            // ==============================
+            // ALERT FILTERS & BUTTONS
+            // ==============================
+            function setupAlertFilters() {
+                document.querySelectorAll(".alert-filter-btn").forEach(btn => {
+                    btn.addEventListener("click", function () {
+                        const filter = this.getAttribute("data-filter");
+
+                        // Update active button state
+                        document.querySelectorAll(".alert-filter-btn").forEach(b => b.classList.remove("active"));
+                        this.classList.add("active");
+
+                        currentAlertFilter = filter;
+                        filterAlerts();
+                    });
                 });
-                
-                const location1Power = location1Aggregated.map(d => d.Actual_Power);
-                const location2Power = location2Aggregated.map(d => d.Actual_Power);
-                const location3Power = location3Aggregated.map(d => d.Actual_Power);
-                
-                if(comparisonChart) comparisonChart.destroy();
-                const ctx = document.getElementById('comparisonChart').getContext('2d');
-                comparisonChart = new Chart(ctx, {
-                    type: 'bar',
+
+                // Clear alerts
+                clearAlertsBtn.addEventListener("click", function () {
+                    if (confirm("Are you sure you want to clear all alerts?")) {
+                        clearAllAlerts();
+                    }
+                });
+
+                // Manual refresh
+                refreshAlertsBtn.addEventListener("click", function () {
+                    fetchAlerts(currentLocation).then(alerts => {
+                        allAlerts = alerts;
+                        updateAlertsDisplay();
+                    });
+                });
+            }
+
+            // ==============================
+            // FILTERING & DISPLAY
+            // ==============================
+            function filterAlerts() {
+                let filtered = allAlerts;
+
+                if (currentAlertFilter === "critical") {
+                    filtered = allAlerts.filter(a => a.severity === "critical");
+                } else if (currentAlertFilter === "warning") {
+                    filtered = allAlerts.filter(a => a.severity === "warning");
+                } else if (currentAlertFilter === "info") {
+                    filtered = allAlerts.filter(a => a.severity === "info");
+                }
+
+                displayAlerts(filtered);
+            }
+
+            function displayAlerts(alerts) {
+                alertsDiv.innerHTML = "";
+
+                if (!alerts || alerts.length === 0) {
+                    noAlertsDiv.style.display = "block";
+                    clearAlertsBtn.disabled = true;
+                    return;
+                }
+
+                noAlertsDiv.style.display = "none";
+                clearAlertsBtn.disabled = false;
+
+                alerts.forEach(alert => {
+                    const alertClass = getAlertClass(alert.severity);
+                    const priorityClass = getPriorityClass(alert.severity);
+                    const icon = getAlertIcon(alert.severity);
+
+                    const el = document.createElement("div");
+                    el.className = `alert-card ${alertClass} d-flex align-items-start position-relative`;
+
+                    el.innerHTML = `
+            <div class="alert-priority-indicator ${priorityClass}"></div>
+            <div class="alert-content flex-grow-1 me-2">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="alert-heading mb-0 d-flex align-items-center">
+                        <i class="bi ${icon} me-2"></i>
+                        ${alert.type ? alert.type.toUpperCase() : "SYSTEM"} Alert
+                    </h6>
+                    <span class="badge ${getBadgeClass(alert.severity)} alert-badge">${alert.severity}</span>
+                </div>
+                <p class="alert-message mb-1">${alert.message}</p>
+                <small class="alert-timestamp">${new Date(alert.timestamp).toLocaleString()}</small>
+            </div>
+            <div class="alert-actions d-flex flex-column">
+                <button class="btn btn-sm btn-outline-secondary mb-1" onclick="dismissAlert('${alert.timestamp}')" title="Dismiss">
+                    <i class="bi bi-x"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" onclick="viewAlertDetails('${alert.timestamp}')" title="Details">
+                    <i class="bi bi-info"></i>
+                </button>
+            </div>
+        `;
+
+                    alertsDiv.appendChild(el);
+                });
+            }
+
+            // ==============================
+            // ALERT COUNTS & SUMMARY
+            // ==============================
+            function updateAlertsSummary(alerts) {
+                const critical = alerts.filter(a => a.severity === "critical").length;
+                const warning = alerts.filter(a => a.severity === "warning").length;
+                const info = alerts.filter(a => a.severity === "info").length;
+
+                criticalCount.textContent = critical;
+                warningCount.textContent = warning;
+                infoCount.textContent = info;
+                alertCount.textContent = alerts.length;
+
+                if (alerts.length > 0) {
+                    alertSummary.classList.remove("d-none");
+                } else {
+                    alertSummary.classList.add("d-none");
+                }
+            }
+
+            // ==============================
+            // STYLE HELPERS
+            // ==============================
+            function getAlertClass(severity) {
+                switch (severity) {
+                    case "critical": return "critical";
+                    case "warning": return "warning";
+                    case "info": return "info";
+                    default: return "warning";
+                }
+            }
+
+            function getPriorityClass(severity) {
+                switch (severity) {
+                    case "critical": return "alert-priority-high";
+                    case "warning": return "alert-priority-medium";
+                    case "info": return "alert-priority-low";
+                    default: return "alert-priority-medium";
+                }
+            }
+
+            function getAlertIcon(severity) {
+                switch (severity) {
+                    case "critical": return "bi-exclamation-octagon-fill text-danger";
+                    case "warning": return "bi-exclamation-triangle-fill text-warning";
+                    case "info": return "bi-info-circle-fill text-info";
+                    default: return "bi-exclamation-triangle-fill text-warning";
+                }
+            }
+
+            function getBadgeClass(severity) {
+                switch (severity) {
+                    case "critical": return "bg-danger";
+                    case "warning": return "bg-warning";
+                    case "info": return "bg-info";
+                    default: return "bg-secondary";
+                }
+            }
+
+            // ==============================
+            // ACTIONS
+            // ==============================
+            function dismissAlert(timestamp) {
+                allAlerts = allAlerts.filter(a => a.timestamp !== timestamp);
+                updateAlertsDisplay();
+            }
+
+            function viewAlertDetails(timestamp) {
+                const alert = allAlerts.find(a => a.timestamp === timestamp);
+                if (alert) {
+                    alertModal(
+                        "Alert Details",
+                        `
+            <strong>Type:</strong> ${alert.type}<br>
+            <strong>Severity:</strong> ${alert.severity}<br>
+            <strong>Message:</strong> ${alert.message}<br>
+            <strong>Time:</strong> ${new Date(alert.timestamp).toLocaleString()}
+            `
+                    );
+                }
+            }
+
+            function clearAllAlerts() {
+                allAlerts = [];
+                updateAlertsDisplay();
+            }
+
+            // ==============================
+            // UPDATE FUNCTION
+            // ==============================
+            async function updateAlerts() {
+                const alertsData = await fetchAlerts(currentLocation);
+                allAlerts = alertsData;
+                updateAlertsDisplay();
+            }
+
+            function updateAlertsDisplay() {
+                updateAlertsSummary(allAlerts);
+                filterAlerts();
+            }
+
+            // ==============================
+            // LOAD STATUS ALERT HANDLING
+            // ==============================
+            function displayLoadStatusAlert(loadData) {
+                const status = loadData.load_status || "Unknown";
+                const action = loadData.load_action || "Unknown";
+                const recommendation = loadData.recommended_action || "Unknown";
+
+                const statusLower = status.toLowerCase();
+                if (!statusLower.includes("normal") && !statusLower.includes("optimal") && !statusLower.includes("stable")) {
+                    let severity = "warning";
+                    if (statusLower.includes("critical") || statusLower.includes("emergency") || statusLower.includes("shutdown")) {
+                        severity = "critical";
+                    } else if (statusLower.includes("no data") || statusLower.includes("unknown")) {
+                        severity = "info";
+                    }
+
+                    const newAlert = {
+                        timestamp: loadData.timestamp || new Date().toISOString(),
+                        type: "load_management",
+                        severity,
+                        message: `Load Status: ${status} | Action: ${action} | Recommendation: ${recommendation}`
+                    };
+
+                    // Avoid duplicates
+                    const exists = allAlerts.some(a => a.type === "load_management" && a.message === newAlert.message);
+                    if (!exists) {
+                        allAlerts.unshift(newAlert);
+                        if (allAlerts.length > 50) allAlerts = allAlerts.slice(0, 50);
+                        updateAlertsDisplay();
+                    }
+                }
+            }
+
+            // ==============================
+            // CHART AND HISTORICAL DATA FUNCTIONS
+            // ==============================
+
+            // HISTORICAL DATA CHART - Updated to include battery voltage
+            function updateHistoricalChart(data) {
+                if (!data || data.length === 0) return;
+
+                // Prepare data for chart based on time range
+                let labels, tempData, humData, powerData, batteryVoltageData;
+
+                if (currentTimeRange === 'day') {
+                    // For day view, show data by hour
+                    labels = data.map(d => {
+                        const date = new Date(d.Timestamp);
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    });
+                } else if (currentTimeRange === 'week') {
+                    // For week view, show data by day
+                    const aggregated = aggregateDataByDay(data);
+                    labels = aggregated.map(d => {
+                        const date = new Date(d.Timestamp);
+                        return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+                    });
+                    tempData = aggregated.map(d => d.Temperature);
+                    humData = aggregated.map(d => d.Humidity);
+                    powerData = aggregated.map(d => d.Actual_Power);
+                    batteryVoltageData = aggregated.map(d => d.Battery_Voltage);
+                } else if (currentTimeRange === 'month') {
+                    // For month view, show data by week
+                    const aggregated = aggregateDataByWeek(data);
+                    labels = aggregated.map(d => d.weekLabel);
+                    tempData = aggregated.map(d => d.avgTemp);
+                    humData = aggregated.map(d => d.avgHumidity);
+                    powerData = aggregated.map(d => d.avgPower);
+                    batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
+                } else {
+                    // For year view, show data by month
+                    const aggregated = aggregateDataByMonth(data);
+                    labels = aggregated.map(d => d.monthLabel);
+                    tempData = aggregated.map(d => d.avgTemp);
+                    humData = aggregated.map(d => d.avgHumidity);
+                    powerData = aggregated.map(d => d.avgPower);
+                    batteryVoltageData = aggregated.map(d => d.avgBatteryVoltage);
+                }
+
+                // If we haven't set the data yet (for day view), use the original data
+                if (!tempData) {
+                    tempData = data.map(d => d.Temperature || 0);
+                    humData = data.map(d => d.Humidity || 0);
+                    powerData = data.map(d => d.Actual_Power || 0);
+                    batteryVoltageData = data.map(d => d.Battery_Voltage || 0);
+                }
+
+                if (chart) chart.destroy();
+                const ctx = document.getElementById('sensorChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
                     data: {
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Sto Tomas',
-                                data: location1Power,
-                                backgroundColor: 'rgba(30, 60, 114, 0.7)',
-                                borderColor: 'rgb(30, 60, 114)',
-                                borderWidth: 1
+                                label: 'Temperature (°C)',
+                                data: tempData,
+                                borderColor: 'rgb(220, 53, 69)',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y'
                             },
                             {
-                                label: 'LSPU San Pablo',
-                                data: location2Power,
-                                backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                                label: 'Humidity (%)',
+                                data: humData,
+                                borderColor: 'rgb(13, 202, 240)',
+                                backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'Power Output (W)',
+                                data: powerData,
                                 borderColor: 'rgb(25, 135, 84)',
-                                borderWidth: 1
+                                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y'
                             },
                             {
-                                label: 'San Pablo City',
-                                data: location3Power,
-                                backgroundColor: 'rgba(253, 126, 20, 0.7)',
-                                borderColor: 'rgb(253, 126, 20)',
-                                borderWidth: 1
+                                label: 'Battery Voltage (V)',
+                                data: batteryVoltageData,
+                                borderColor: 'rgb(111, 66, 193)',
+                                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y2'
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
                         plugins: {
                             legend: {
                                 position: 'top',
                             },
-                            title: {
-                                display: true,
-                                text: 'Power Output Comparison (Last 7 Days)'
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
                             }
                         },
                         scales: {
@@ -1559,207 +1796,567 @@
                                 }
                             },
                             y: {
-                                beginAtZero: true,
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
                                 title: {
                                     display: true,
-                                    text: 'Power Output (W)'
+                                    text: 'Temperature (°C) / Power (W)'
                                 }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Humidity (%)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Battery Voltage (V)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                offset: true
                             }
                         }
                     }
                 });
-            } catch (error) {
-                console.error('Error updating comparison chart:', error);
             }
-        }
 
-        // Aggregate data by day for week view - Updated for battery data
-        function aggregateDataByDay(data) {
-            const aggregated = {};
-            
-            data.forEach(record => {
-                const date = new Date(record.Timestamp);
-                const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-                
-                if (!aggregated[dateKey]) {
-                    aggregated[dateKey] = {
-                        Timestamp: record.Timestamp,
-                        Temperature: 0,
-                        Humidity: 0,
-                        Actual_Power: 0,
-                        Battery_Voltage: 0,
-                        count: 0
-                    };
+            // Update comparison chart with data from all locations
+            async function updateComparisonChart() {
+                try {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(start.getDate() - 7); // Last week
+
+                    // Fetch data for all locations
+                    const [location1Data, location2Data, location3Data] = await Promise.all([
+                        fetch(`/api/historical/sto_tomas?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
+                        fetch(`/api/historical/lspu_san_pablo?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json()),
+                        fetch(`/api/historical/san_pablo_city?start=${formatDateForInput(start)}&end=${formatDateForInput(end)}`).then(r => r.json())
+                    ]);
+
+                    // Aggregate data by day for comparison
+                    const location1Aggregated = aggregateDataByDay(location1Data);
+                    const location2Aggregated = aggregateDataByDay(location2Data);
+                    const location3Aggregated = aggregateDataByDay(location3Data);
+
+                    const labels = location1Aggregated.map(d => {
+                        const date = new Date(d.Timestamp);
+                        return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+                    });
+
+                    const location1Power = location1Aggregated.map(d => d.Actual_Power || 0);
+                    const location2Power = location2Aggregated.map(d => d.Actual_Power || 0);
+                    const location3Power = location3Aggregated.map(d => d.Actual_Power || 0);
+
+                    if (comparisonChart) comparisonChart.destroy();
+                    const ctx = document.getElementById('comparisonChart').getContext('2d');
+                    comparisonChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Sto Tomas',
+                                    data: location1Power,
+                                    backgroundColor: 'rgba(30, 60, 114, 0.7)',
+                                    borderColor: 'rgb(30, 60, 114)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'LSPU San Pablo',
+                                    data: location2Power,
+                                    backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                                    borderColor: 'rgb(25, 135, 84)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'San Pablo City',
+                                    data: location3Power,
+                                    backgroundColor: 'rgba(253, 126, 20, 0.7)',
+                                    borderColor: 'rgb(253, 126, 20)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Power Output Comparison (Last 7 Days)'
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Power Output (W)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error updating comparison chart:', error);
                 }
-                
-                aggregated[dateKey].Temperature += parseFloat(record.Temperature);
-                aggregated[dateKey].Humidity += parseFloat(record.Humidity);
-                aggregated[dateKey].Actual_Power += parseFloat(record.Actual_Power);
-                aggregated[dateKey].Battery_Voltage += parseFloat(record.Battery_Voltage);
-                aggregated[dateKey].count++;
-            });
-            
-            // Calculate averages
-            Object.keys(aggregated).forEach(key => {
-                aggregated[key].Temperature = (aggregated[key].Temperature / aggregated[key].count).toFixed(1);
-                aggregated[key].Humidity = (aggregated[key].Humidity / aggregated[key].count).toFixed(1);
-                aggregated[key].Actual_Power = (aggregated[key].Actual_Power / aggregated[key].count).toFixed(1);
-                aggregated[key].Battery_Voltage = (aggregated[key].Battery_Voltage / aggregated[key].count).toFixed(1);
-            });
-            
-            return Object.values(aggregated);
-        }
+            }
 
-        // Aggregate data by week for month view - Updated for battery data
-        function aggregateDataByWeek(data) {
-            const aggregated = {};
-            
-            data.forEach(record => {
-                const date = new Date(record.Timestamp);
-                const year = date.getFullYear();
-                const weekNumber = getWeekNumber(date);
-                const weekKey = `${year}-W${weekNumber}`;
-                
-                if (!aggregated[weekKey]) {
-                    aggregated[weekKey] = {
-                        weekLabel: `Week ${weekNumber}`,
-                        avgTemp: 0,
-                        avgHumidity: 0,
-                        avgPower: 0,
-                        avgBatteryVoltage: 0,
-                        count: 0
-                    };
-                }
-                
-                aggregated[weekKey].avgTemp += parseFloat(record.Temperature);
-                aggregated[weekKey].avgHumidity += parseFloat(record.Humidity);
-                aggregated[weekKey].avgPower += parseFloat(record.Actual_Power);
-                aggregated[weekKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage);
-                aggregated[weekKey].count++;
-            });
-            
-            // Calculate averages
-            Object.keys(aggregated).forEach(key => {
-                aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
-                aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
-                aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
-                aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
-            });
-            
-            return Object.values(aggregated);
-        }
+            // Update historical data table - Updated for battery columns
+            // Update historical data table - Shows today's data and updates in real-time
+            function updateHistoricalTable(data) {
+                historicalTableBody.innerHTML = '';
 
-        // Aggregate data by month for year view - Updated for battery data
-        function aggregateDataByMonth(data) {
-            const aggregated = {};
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            
-            data.forEach(record => {
-                const date = new Date(record.Timestamp);
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const monthKey = `${year}-${month}`;
-                
-                if (!aggregated[monthKey]) {
-                    aggregated[monthKey] = {
-                        monthLabel: `${monthNames[month]} ${year}`,
-                        avgTemp: 0,
-                        avgHumidity: 0,
-                        avgPower: 0,
-                        avgBatteryVoltage: 0,
-                        count: 0
-                    };
-                }
-                
-                aggregated[monthKey].avgTemp += parseFloat(record.Temperature);
-                aggregated[monthKey].avgHumidity += parseFloat(record.Humidity);
-                aggregated[monthKey].avgPower += parseFloat(record.Actual_Power);
-                aggregated[monthKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage);
-                aggregated[monthKey].count++;
-            });
-            
-            // Calculate averages
-            Object.keys(aggregated).forEach(key => {
-                aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
-                aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
-                aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
-                aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
-            });
-            
-            return Object.values(aggregated);
-        }
-
-        // Helper function to get week number
-        function getWeekNumber(date) {
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-        }
-
-        // Update historical data table - Updated for battery columns
-        function updateHistoricalTable(data) {
-            historicalTableBody.innerHTML = '';
-            
-            // Show only a subset of data in the table to avoid performance issues
-            const displayData = data.length > 100 ? data.slice(-100) : data;
-            
-            displayData.forEach(record => {
-                const row = document.createElement('tr');
-                const date = new Date(record.Timestamp);
-                const efficiencyText = record.Efficiency_Class === 2 ? 'High' : 
-                                     record.Efficiency_Class === 1 ? 'Medium' : 'Low';
-                
-                row.innerHTML = `
-                    <td>${date.toLocaleString()}</td>
-                    <td>${record.Temperature}</td>
-                    <td>${record.Humidity}</td>
-                    <td>${record.Panel_Voltage}</td>
-                    <td>${record.Panel_Current}</td>
-                    <td>${record.Battery_Voltage}</td>
-                    <td>${record.Charge_Current}</td>
-                    <td>${record.Actual_Power}</td>
-                    <td>${efficiencyText}</td>
+                if (!data || data.length === 0) {
+                    // Show empty state
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No data available for the selected period</p>
+                        <small>Data will appear here as it becomes available</small>
+                    </td>
                 `;
-                
-                historicalTableBody.appendChild(row);
-            });
-            
-            // Update data points count
-            dataPoints.textContent = data.length;
-        }
+                    historicalTableBody.appendChild(row);
+                    dataPoints.textContent = '0';
+                    return;
+                }
 
-        // DATE PICKER FORM
-        document.getElementById('history-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const start = document.getElementById('start-date').value;
-            const end = document.getElementById('end-date').value;
-            
-            // Determine the time range based on the selected dates
-            const startDate = new Date(start);
-            const endDate = new Date(end);
-            const diffTime = Math.abs(endDate - startDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays <= 1) {
-                currentTimeRange = 'day';
-            } else if (diffDays <= 7) {
-                currentTimeRange = 'week';
-            } else if (diffDays <= 31) {
-                currentTimeRange = 'month';
-            } else {
-                currentTimeRange = 'year';
+                // Filter to show only today's data and sort by timestamp (newest first)
+                const today = new Date().toDateString();
+                const todayData = data
+                    .filter(record => {
+                        if (!record.Timestamp) return false;
+                        const recordDate = new Date(record.Timestamp).toDateString();
+                        return recordDate === today;
+                    })
+                    .sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp)) // Newest first
+                    .slice(0, 50); // Show only latest 50 records
+
+                if (todayData.length === 0) {
+                    // Show message if no today's data
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No data available for today</p>
+                        <small>Data from ${new Date().toLocaleDateString()} will appear here</small>
+                    </td>
+                `;
+                    historicalTableBody.appendChild(row);
+                    dataPoints.textContent = '0';
+                    return;
+                }
+
+                // Display today's data
+                todayData.forEach(record => {
+                    const row = document.createElement('tr');
+                    const date = new Date(record.Timestamp);
+                    const efficiencyText = record.Efficiency_Class === 2 ? 'High' :
+                        record.Efficiency_Class === 1 ? 'Medium' : 'Low';
+
+                    // Add highlight for very recent data (last 5 minutes)
+                    const isRecent = (Date.now() - date.getTime()) < 5 * 60 * 1000;
+                    if (isRecent) {
+                        row.classList.add('table-success');
+                        row.classList.add('fade-in');
+                    }
+
+                    row.innerHTML = `
+                    <td>
+                        ${date.toLocaleString()}
+                        ${isRecent ? '<span class="badge bg-success ms-1">New</span>' : ''}
+                    </td>
+                    <td>${record.Temperature || '--'}</td>
+                    <td>${record.Humidity || '--'}</td>
+                    <td>${record.Panel_Voltage || '--'}</td>
+                    <td>${record.Panel_Current || '--'}</td>
+                    <td>${record.Battery_Voltage || '--'}</td>
+                    <td>${record.Charge_Current || '--'}</td>
+                    <td>${record.Actual_Power || '--'}</td>
+                    <td>
+                        <span class="badge ${efficiencyText === 'High' ? 'bg-success' :
+                            efficiencyText === 'Medium' ? 'bg-warning' : 'bg-danger'
+                        }">
+                            ${efficiencyText}
+                        </span>
+                    </td>
+                `;
+
+                    historicalTableBody.appendChild(row);
+                });
+
+
+                // Add visual indicator for table refresh
+                function updateTableRefreshIndicator() {
+                    const now = new Date();
+                    const tableHeader = document.querySelector('#table-location').closest('.card-header');
+
+                    // Remove existing indicator
+                    const existingIndicator = tableHeader.querySelector('.refresh-indicator');
+                    if (existingIndicator) {
+                        existingIndicator.remove();
+                    }
+
+                    // Add new indicator
+                    const indicator = document.createElement('div');
+                    indicator.className = 'refresh-indicator';
+                    indicator.innerHTML = `
+                <small class="text-muted">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Last updated: ${now.toLocaleTimeString()}
+                </small>
+            `;
+                    tableHeader.querySelector('.card-title').after(indicator);
+                }
+
+                // Auto-refresh historical data for today
+                function startHistoricalDataAutoRefresh() {
+                    // Refresh historical data every 30 seconds to get latest today's data
+                    setInterval(() => {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setHours(0, 0, 0, 0); // Start of today
+
+                        fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+                    }, 30000); // Every 30 seconds
+                }
+
+                // Update data points count with today's count
+                dataPoints.textContent = todayData.length;
+
+                // Add auto-refresh indicator if we have recent data
+                updateTableRefreshIndicator();
             }
-            
-            // Update button states
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            fetchHistoricalData(start, end);
-        });
 
-        // INITIALIZE DASHBOARD
-        document.addEventListener('DOMContentLoaded', initDashboard);
-    </script>
+            // ==============================
+            // UTILITY FUNCTIONS
+            // ==============================
+
+            // Update current time display
+            function updateCurrentTime() {
+                const now = new Date();
+                currentTime.textContent = now.toLocaleString();
+            }
+
+            // Format date for datetime-local input
+            function formatDateForInput(date) {
+                return date.toISOString().slice(0, 16);
+            }
+
+            // Set time range for historical data
+            function setTimeRange(range) {
+                const end = new Date();
+                const start = new Date();
+                currentTimeRange = range;
+
+                // Reset all buttons
+                document.querySelectorAll('.time-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                switch (range) {
+                    case 'day':
+                        start.setHours(start.getHours() - 24);
+                        document.getElementById('day-btn').classList.add('active');
+                        break;
+                    case 'week':
+                        start.setDate(start.getDate() - 7);
+                        document.getElementById('week-btn').classList.add('active');
+                        break;
+                    case 'month':
+                        start.setMonth(start.getMonth() - 1);
+                        document.getElementById('month-btn').classList.add('active');
+                        break;
+                    case 'year':
+                        start.setFullYear(start.getFullYear() - 1);
+                        document.getElementById('year-btn').classList.add('active');
+                        break;
+                }
+
+                document.getElementById('start-date').value = formatDateForInput(start);
+                document.getElementById('end-date').value = formatDateForInput(end);
+                fetchHistoricalData(formatDateForInput(start), formatDateForInput(end));
+            }
+
+            // Show model image instead of running AI prediction
+            async function runPrediction() {
+                try {
+                    runPredictionBtn.disabled = true;
+                    runPredictionBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+
+                    // Use Bootstrap's Modal
+                    const modelModal = new bootstrap.Modal(document.getElementById('modelPopup'));
+                    modelModal.show();
+
+                    showToast('Prediction model image displayed!', 'success');
+
+                } catch (error) {
+                    console.error('Display error:', error);
+                    showToast('Failed to show model image: ' + error.message, 'error');
+                } finally {
+                    runPredictionBtn.disabled = false;
+                    runPredictionBtn.innerHTML = '<i class="bi bi-lightning-charge"></i> Prediction Model';
+                }
+            }
+
+            // Show toast notification
+            function showToast(message, type = 'info') {
+                // Create toast element
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-bg-${type === 'error' ? 'danger' : type} border-0`;
+                toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+
+                // Add to container
+                const container = document.getElementById('toast-container') || createToastContainer();
+                container.appendChild(toast);
+
+                // Initialize and show toast
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+
+                // Remove after hide
+                toast.addEventListener('hidden.bs.toast', () => {
+                    toast.remove();
+                });
+            }
+
+            // Create toast container if it doesn't exist
+            function createToastContainer() {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+                return container;
+            }
+
+            // Data aggregation functions
+            function aggregateDataByDay(data) {
+                const aggregated = {};
+
+                data.forEach(record => {
+                    const date = new Date(record.Timestamp);
+                    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+                    if (!aggregated[dateKey]) {
+                        aggregated[dateKey] = {
+                            Timestamp: record.Timestamp,
+                            Temperature: 0,
+                            Humidity: 0,
+                            Actual_Power: 0,
+                            Battery_Voltage: 0,
+                            count: 0
+                        };
+                    }
+
+                    aggregated[dateKey].Temperature += parseFloat(record.Temperature || 0);
+                    aggregated[dateKey].Humidity += parseFloat(record.Humidity || 0);
+                    aggregated[dateKey].Actual_Power += parseFloat(record.Actual_Power || 0);
+                    aggregated[dateKey].Battery_Voltage += parseFloat(record.Battery_Voltage || 0);
+                    aggregated[dateKey].count++;
+                });
+
+                // Calculate averages
+                Object.keys(aggregated).forEach(key => {
+                    aggregated[key].Temperature = (aggregated[key].Temperature / aggregated[key].count).toFixed(1);
+                    aggregated[key].Humidity = (aggregated[key].Humidity / aggregated[key].count).toFixed(1);
+                    aggregated[key].Actual_Power = (aggregated[key].Actual_Power / aggregated[key].count).toFixed(1);
+                    aggregated[key].Battery_Voltage = (aggregated[key].Battery_Voltage / aggregated[key].count).toFixed(1);
+                });
+
+                return Object.values(aggregated);
+            }
+
+            function aggregateDataByWeek(data) {
+                const aggregated = {};
+
+                data.forEach(record => {
+                    const date = new Date(record.Timestamp);
+                    const year = date.getFullYear();
+                    const weekNumber = getWeekNumber(date);
+                    const weekKey = `${year}-W${weekNumber}`;
+
+                    if (!aggregated[weekKey]) {
+                        aggregated[weekKey] = {
+                            weekLabel: `Week ${weekNumber}`,
+                            avgTemp: 0,
+                            avgHumidity: 0,
+                            avgPower: 0,
+                            avgBatteryVoltage: 0,
+                            count: 0
+                        };
+                    }
+
+                    aggregated[weekKey].avgTemp += parseFloat(record.Temperature || 0);
+                    aggregated[weekKey].avgHumidity += parseFloat(record.Humidity || 0);
+                    aggregated[weekKey].avgPower += parseFloat(record.Actual_Power || 0);
+                    aggregated[weekKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage || 0);
+                    aggregated[weekKey].count++;
+                });
+
+                // Calculate averages
+                Object.keys(aggregated).forEach(key => {
+                    aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
+                });
+
+                return Object.values(aggregated);
+            }
+
+            function aggregateDataByMonth(data) {
+                const aggregated = {};
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                data.forEach(record => {
+                    const date = new Date(record.Timestamp);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const monthKey = `${year}-${month}`;
+
+                    if (!aggregated[monthKey]) {
+                        aggregated[monthKey] = {
+                            monthLabel: `${monthNames[month]} ${year}`,
+                            avgTemp: 0,
+                            avgHumidity: 0,
+                            avgPower: 0,
+                            avgBatteryVoltage: 0,
+                            count: 0
+                        };
+                    }
+
+                    aggregated[monthKey].avgTemp += parseFloat(record.Temperature || 0);
+                    aggregated[monthKey].avgHumidity += parseFloat(record.Humidity || 0);
+                    aggregated[monthKey].avgPower += parseFloat(record.Actual_Power || 0);
+                    aggregated[monthKey].avgBatteryVoltage += parseFloat(record.Battery_Voltage || 0);
+                    aggregated[monthKey].count++;
+                });
+
+                // Calculate averages
+                Object.keys(aggregated).forEach(key => {
+                    aggregated[key].avgTemp = (aggregated[key].avgTemp / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgHumidity = (aggregated[key].avgHumidity / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgPower = (aggregated[key].avgPower / aggregated[key].count).toFixed(1);
+                    aggregated[key].avgBatteryVoltage = (aggregated[key].avgBatteryVoltage / aggregated[key].count).toFixed(1);
+                });
+
+                return Object.values(aggregated);
+            }
+
+            // Helper function to get week number
+            function getWeekNumber(date) {
+                const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+                const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+                return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            }
+
+            // ==============================
+            // DEBUG AND TESTING FUNCTIONS
+            // ==============================
+
+
+
+
+
+
+            // Debug function to test all APIs
+            async function testAllAPIs() {
+                console.log('Testing API connectivity...');
+
+                try {
+                    // Test current data API
+                    const currentData = await fetchCurrentData(currentLocation);
+                    console.log('✅ Current Data API:', currentData ? 'Working' : 'Failed');
+
+                    // Test load status API
+                    const loadStatus = await fetchLoadStatus(currentLocation);
+                    console.log('✅ Load Status API:', loadStatus ? 'Working' : 'Failed');
+
+                    // Test alerts API
+                    const alerts = await fetchAlerts(currentLocation);
+                    console.log('✅ Alerts API:', alerts ? 'Working' : 'Failed');
+
+                    // Test historical data API
+                    const historical = await fetchHistoricalData(
+                        formatDateForInput(new Date(Date.now() - 24 * 60 * 60 * 1000)),
+                        formatDateForInput(new Date())
+                    );
+                    console.log('✅ Historical Data API:', historical ? 'Working' : 'Failed');
+
+                } catch (error) {
+                    console.error('❌ API Test Failed:', error);
+                }
+            }
+
+            // ==============================
+            // EVENT LISTENERS
+            // ==============================
+
+            // DATE PICKER FORM
+            document.getElementById('history-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const start = document.getElementById('start-date').value;
+                const end = document.getElementById('end-date').value;
+
+                // Determine the time range based on the selected dates
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 1) {
+                    currentTimeRange = 'day';
+                } else if (diffDays <= 7) {
+                    currentTimeRange = 'week';
+                } else if (diffDays <= 31) {
+                    currentTimeRange = 'month';
+                } else {
+                    currentTimeRange = 'year';
+                }
+
+                // Update button states
+                document.querySelectorAll('.time-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                fetchHistoricalData(start, end);
+            });
+
+            // INITIALIZE DASHBOARD
+            document.addEventListener('DOMContentLoaded', initDashboard);
+        </script>
 </body>
+
 </html>

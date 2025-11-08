@@ -1169,6 +1169,7 @@ class AlertSystem:
         for alert in info_alerts:
             print(f"   ℹ️  {alert.message}")
 
+            
 class WeatherMonitor:
     def __init__(self, openweather_key: str, nrel_key: str):
         self.openweather_key = openweather_key
@@ -1652,10 +1653,10 @@ class MonitoringSystem:
                 # Create monitoring database and insert historical data
                 conn = sqlite3.connect(monitoring_db)
                 
-                # Drop existing table to ensure clean data
+                # Drop existing table to ensure clean data with updated schema
                 conn.execute("DROP TABLE IF EXISTS monitoring")
                 
-                # Fixed schema with all required columns
+                # UPDATED SCHEMA with all required columns for real-time monitoring
                 conn.execute('''
                     CREATE TABLE monitoring (
                         Timestamp TEXT PRIMARY KEY,
@@ -1675,6 +1676,8 @@ class MonitoringSystem:
                         Charge_Current REAL,
                         Net_Power REAL,
                         Load_Power REAL,
+                        Battery_Power REAL,
+                        Power_Direction TEXT,
                         Efficiency_Class INTEGER,
                         Load_Status TEXT,
                         Load_Action TEXT,
@@ -1684,13 +1687,22 @@ class MonitoringSystem:
                 ''')
                 
                 if historical_records:
+                    # For historical data, we need to add the new columns with default values
+                    enhanced_historical_records = []
+                    for record in historical_records:
+                        enhanced_record = record.copy()
+                        # Add the new columns that weren't in historical data
+                        enhanced_record["Battery_Power"] = record.get("Net_Power", 0)  # Estimate from Net_Power
+                        enhanced_record["Power_Direction"] = "CHARGING" if record.get("Net_Power", 0) > 0 else "DISCHARGING"
+                        enhanced_historical_records.append(enhanced_record)
+                    
                     # Insert in batches to avoid memory issues
                     batch_size = 1000
-                    for i in range(0, len(historical_records), batch_size):
-                        batch = historical_records[i:i + batch_size]
+                    for i in range(0, len(enhanced_historical_records), batch_size):
+                        batch = enhanced_historical_records[i:i + batch_size]
                         df = pd.DataFrame(batch)
                         df.to_sql("monitoring", conn, if_exists="append", index=False)
-                        print(f"  ✅ Inserted batch {i//batch_size + 1}/{(len(historical_records)-1)//batch_size + 1}")
+                        print(f"  ✅ Inserted batch {i//batch_size + 1}/{(len(enhanced_historical_records)-1)//batch_size + 1}")
                     
                     # Verify data was inserted
                     count = conn.execute("SELECT COUNT(*) FROM monitoring").fetchone()[0]
@@ -1700,6 +1712,11 @@ class MonitoringSystem:
                     first_date = conn.execute("SELECT MIN(Timestamp) FROM monitoring").fetchone()[0]
                     last_date = conn.execute("SELECT MAX(Timestamp) FROM monitoring").fetchone()[0]
                     print(f"   📅 Date range: {first_date} to {last_date}")
+                    
+                    # Verify new columns exist
+                    cursor = conn.execute("PRAGMA table_info(monitoring)")
+                    columns = [column[1] for column in cursor.fetchall()]
+                    print(f"   📋 Table columns: {', '.join(columns)}")
                     
                 else:
                     print(f"❌ No historical records generated for {location_name}")
@@ -1726,9 +1743,66 @@ class MonitoringSystem:
                 import traceback
                 traceback.print_exc()
 
+    def repair_database_schema(self, location_name: str):
+        """Repair database schema to ensure all required columns exist"""
+        try:
+            db_name = f"solar_monitoring_{location_name.lower()}.db"
+            conn = sqlite3.connect(db_name)
+            
+            # Required columns with their types
+            required_columns = {
+                "Timestamp": "TEXT PRIMARY KEY",
+                "Temperature": "REAL",
+                "Humidity": "REAL", 
+                "Rainfall": "REAL",
+                "Solar_Irradiance": "REAL",
+                "Solar_DNI": "REAL",
+                "Solar_DHI": "REAL",
+                "Panel_Voltage": "REAL",
+                "Panel_Current": "REAL",
+                "Raw_Power": "REAL",
+                "Actual_Power": "REAL",
+                "Panel_Efficiency": "REAL",
+                "Battery_Voltage": "REAL",
+                "State_of_Charge": "REAL",
+                "Charge_Current": "REAL",
+                "Net_Power": "REAL",
+                "Load_Power": "REAL",
+                "Battery_Power": "REAL",      # NEW COLUMN
+                "Power_Direction": "TEXT",    # NEW COLUMN
+                "Efficiency_Class": "INTEGER",
+                "Load_Status": "TEXT",
+                "Load_Action": "TEXT",
+                "Max_Load": "REAL",
+                "Recommended_Action": "TEXT"
+            }
+            
+            # Check current schema
+            cursor = conn.execute("PRAGMA table_info(monitoring)")
+            existing_columns = {column[1]: column[2] for column in cursor.fetchall()}
+            
+            # Add missing columns
+            for column, col_type in required_columns.items():
+                if column not in existing_columns:
+                    print(f"🔧 Adding missing column: {column} ({col_type})")
+                    try:
+                        conn.execute(f"ALTER TABLE monitoring ADD COLUMN {column} {col_type}")
+                    except Exception as e:
+                        print(f"❌ Error adding column {column}: {e}")
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ Database schema repaired for {location_name}")
+            
+        except Exception as e:
+            print(f"❌ Error repairing database schema for {location_name}: {e}")
+
     def monitor_location(self, location_name: str, coords: LocationData) -> Union[MonitoringData, None]:
         """Monitor solar system at a specific location with real API data."""
         try:
+            # Repair database schema first to ensure all columns exist
+            self.repair_database_schema(location_name)
+            
             print(f"\n--- Monitoring {location_name} ---")
             
             # Get REAL data from APIs
@@ -1737,8 +1811,8 @@ class MonitoringSystem:
             # Extract REAL temperature and humidity from API
             if weather_data and isinstance(weather_data, dict):
                 main_data = weather_data.get("main", {})
-                temp = main_data.get("temp", 28.0)  # REAL temperature from API
-                humidity = main_data.get("humidity", 70.0)  # REAL humidity from API
+                temp = main_data.get("temp", 28.0)
+                humidity = main_data.get("humidity", 70.0)
                 rainfall = weather_data.get("rain", {}).get("1h", 0.0)
             else:
                 print(f"❌ Using fallback data for {location_name}")
@@ -1766,6 +1840,19 @@ class MonitoringSystem:
                 solar_output["actual_power"], time_delta_hours
             )
             
+            # Create monitoring data for alerts
+            monitoring_data = {
+                "Temperature": temp,
+                "Humidity": humidity,
+                "Solar_Irradiance": irradiance_data["irradiance"],
+                "Rainfall": rainfall
+            }
+            
+            # GENERATE COMPREHENSIVE ALERTS
+            self.alert_system.generate_comprehensive_alerts(
+                location_name, monitoring_data, solar_output, battery_status, weather_data
+            )
+            
             # Get load recommendations
             load_rec = self.load_managers[location_name].get_recommendation(
                 battery_status["battery_voltage"],
@@ -1774,16 +1861,15 @@ class MonitoringSystem:
                 location_name
             )
             
-            # Create monitoring data with ALL computed values
-            monitoring_data = {
+            # Create complete monitoring data record
+            complete_monitoring_data = {
                 "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Temperature": temp,                    # FROM API
-                "Humidity": humidity,                   # FROM API
-                "Rainfall": rainfall,                   # FROM API
-                "Solar_Irradiance": irradiance_data["irradiance"],  # FROM API
-                "Solar_DNI": irradiance_data["dni"],    # FROM API
-                "Solar_DHI": irradiance_data["dhi"],    # FROM API
-                # COMPUTED VALUES:
+                "Temperature": temp,
+                "Humidity": humidity,
+                "Rainfall": rainfall,
+                "Solar_Irradiance": irradiance_data["irradiance"],
+                "Solar_DNI": irradiance_data["dni"],
+                "Solar_DHI": irradiance_data["dhi"],
                 "Panel_Voltage": solar_output["panel_voltage"],
                 "Panel_Current": solar_output["panel_current"],
                 "Raw_Power": solar_output["raw_power"],
@@ -1804,34 +1890,37 @@ class MonitoringSystem:
             }
             
             # Save to database and display results
-            self._save_and_display_data(location_name, monitoring_data, solar_output, battery_status)
+            self._save_and_display_data(location_name, complete_monitoring_data, solar_output, battery_status)
+            
+            # PRINT ALERTS SUMMARY
+            self.alert_system.print_alerts_summary()
             
             # Convert to MonitoringData object for return
             return MonitoringData(
-                timestamp=monitoring_data["Timestamp"],
-                temperature=monitoring_data["Temperature"],
-                humidity=monitoring_data["Humidity"],
-                rainfall=monitoring_data["Rainfall"],
-                solar_irradiance=monitoring_data["Solar_Irradiance"],
-                solar_dni=monitoring_data["Solar_DNI"],
-                solar_dhi=monitoring_data["Solar_DHI"],
-                panel_voltage=monitoring_data["Panel_Voltage"],
-                panel_current=monitoring_data["Panel_Current"],
-                raw_power=monitoring_data["Raw_Power"],
-                actual_power=monitoring_data["Actual_Power"],
-                panel_efficiency=monitoring_data["Panel_Efficiency"],
-                battery_voltage=monitoring_data["Battery_Voltage"],
-                state_of_charge=monitoring_data["State_of_Charge"],
-                charge_current=monitoring_data["Charge_Current"],
-                net_power=monitoring_data["Net_Power"],
-                load_power=monitoring_data["Load_Power"],
-                battery_power=monitoring_data["Battery_Power"],
-                power_direction=monitoring_data["Power_Direction"],
-                efficiency_class=monitoring_data["Efficiency_Class"],
-                load_status=monitoring_data["Load_Status"],
-                load_action=monitoring_data["Load_Action"],
-                max_load=monitoring_data["Max_Load"],
-                recommended_action=monitoring_data["Recommended_Action"]
+                timestamp=complete_monitoring_data["Timestamp"],
+                temperature=complete_monitoring_data["Temperature"],
+                humidity=complete_monitoring_data["Humidity"],
+                rainfall=complete_monitoring_data["Rainfall"],
+                solar_irradiance=complete_monitoring_data["Solar_Irradiance"],
+                solar_dni=complete_monitoring_data["Solar_DNI"],
+                solar_dhi=complete_monitoring_data["Solar_DHI"],
+                panel_voltage=complete_monitoring_data["Panel_Voltage"],
+                panel_current=complete_monitoring_data["Panel_Current"],
+                raw_power=complete_monitoring_data["Raw_Power"],
+                actual_power=complete_monitoring_data["Actual_Power"],
+                panel_efficiency=complete_monitoring_data["Panel_Efficiency"],
+                battery_voltage=complete_monitoring_data["Battery_Voltage"],
+                state_of_charge=complete_monitoring_data["State_of_Charge"],
+                charge_current=complete_monitoring_data["Charge_Current"],
+                net_power=complete_monitoring_data["Net_Power"],
+                load_power=complete_monitoring_data["Load_Power"],
+                battery_power=complete_monitoring_data["Battery_Power"],
+                power_direction=complete_monitoring_data["Power_Direction"],
+                efficiency_class=complete_monitoring_data["Efficiency_Class"],
+                load_status=complete_monitoring_data["Load_Status"],
+                load_action=complete_monitoring_data["Load_Action"],
+                max_load=complete_monitoring_data["Max_Load"],
+                recommended_action=complete_monitoring_data["Recommended_Action"]
             )
             
         except Exception as e:
@@ -1846,14 +1935,61 @@ class MonitoringSystem:
         try:
             db_name = f"solar_monitoring_{location_name.lower()}.db"
             conn = sqlite3.connect(db_name)
-            df = pd.DataFrame([monitoring_data])
+            
+            # Check if table exists and has the correct schema
+            cursor = conn.execute("PRAGMA table_info(monitoring)")
+            existing_columns = [column[1] for column in cursor.fetchall()]
+            
+            required_columns = [
+                "Timestamp", "Temperature", "Humidity", "Rainfall", 
+                "Solar_Irradiance", "Solar_DNI", "Solar_DHI",
+                "Panel_Voltage", "Panel_Current", "Raw_Power", "Actual_Power", "Panel_Efficiency",
+                "Battery_Voltage", "State_of_Charge", "Charge_Current", "Net_Power", "Load_Power",
+                "Battery_Power", "Power_Direction", "Efficiency_Class",
+                "Load_Status", "Load_Action", "Max_Load", "Recommended_Action"
+            ]
+            
+            # Check for missing columns
+            missing_columns = [col for col in required_columns if col not in existing_columns]
+            
+            if missing_columns:
+                print(f"⚠️  Adding missing columns to database: {missing_columns}")
+                for column in missing_columns:
+                    try:
+                        if column in ["Timestamp", "Load_Status", "Load_Action", "Power_Direction", "Recommended_Action"]:
+                            conn.execute(f"ALTER TABLE monitoring ADD COLUMN {column} TEXT")
+                        else:
+                            conn.execute(f"ALTER TABLE monitoring ADD COLUMN {column} REAL")
+                    except Exception as e:
+                        print(f"❌ Error adding column {column}: {e}")
+            
+            # Ensure all required data is present
+            complete_data = monitoring_data.copy()
+            
+            # Add any missing fields with default values
+            if "Battery_Power" not in complete_data:
+                complete_data["Battery_Power"] = battery_status.get("battery_power", 0)
+            if "Power_Direction" not in complete_data:
+                complete_data["Power_Direction"] = battery_status.get("power_direction", "IDLE")
+            
+            # Create DataFrame and save to database
+            df = pd.DataFrame([complete_data])
+            
+            # Ensure all required columns are present in the DataFrame
+            for column in required_columns:
+                if column not in df.columns:
+                    df[column] = None  # or appropriate default value
+            
             df.to_sql("monitoring", conn, if_exists="append", index=False)
             
             count = conn.execute("SELECT COUNT(*) FROM monitoring").fetchone()[0]
             print(f"💾 Real-time data saved to database: {db_name} (Total records: {count})")
             conn.close()
+            
         except Exception as e:
             print(f"❌ Database error for {location_name}: {e}")
+            import traceback
+            traceback.print_exc()
         
         # Save alerts
         self.alert_system.save_alerts(location_name)
@@ -1870,10 +2006,10 @@ class MonitoringSystem:
 
     def _classify_efficiency(self, power: float) -> int:
         """Classify efficiency based on power output"""
-        efficiency = power / REAL_SOLAR_SPECS["max_power"]
-        if efficiency < 0.3:
+        efficiency_ratio = power / REAL_SOLAR_SPECS["max_power"]
+        if efficiency_ratio < 0.3:
             return 0  # Low
-        elif efficiency < 0.7:
+        elif efficiency_ratio < 0.7:
             return 1  # Medium
         return 2  # High
 
